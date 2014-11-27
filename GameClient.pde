@@ -15,71 +15,34 @@ class GameClient extends Level {
   }
 
   public void begin() {
-    Packet packet = new Packet(PacketType.JOIN, player_name);
-    byte[] data = null;
-    try {
-      data = ps.serialize(packet);
-      client.write(data);
-    } 
-    catch (IOException e) {
-      System.err.println("Caught IOException: " + e.getMessage());
-      e.printStackTrace();
-      exit();
-    }    
-    /*
+    int retry = 0;
     do {
-     if (client.available() > 0) {
-     data = client.readBytes();
-     packet = null;
-     try {
-     packet = ps.deserialize(data);
-     if (packet.getType() == PacketType.STATE) {
-     ArrayList list = packet.getData();
-     world = new World(packet.getRingRadius());
-     for (Object obj : list) {
-     if (obj instanceof PlayerData) {
-     PlayerData player = (PlayerData) obj;
-     if (player_name.equals(player.name))
-     controlled_unit = new Unit(player, world);
-     }
-     }
-     }
-     } catch (IOException e) {
-     System.err.println("Caught IOException: " + e.getMessage());
-     e.printStackTrace();
-     } catch (ClassNotFoundException e) {
-     System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-     e.printStackTrace();
-     exit();
-     return;
-     }
-     }
-     println("Waiting for my unit");
-     } while(controlled_unit == null);
-     println("done");
-     hud = new Hud(controlled_unit);
-     */    int retry = 0;
-    do {
-      println("reading");
       retry++;
-      data = client.readBytesUntil(interesting);
+      byte[] data = client.readBytesUntil(interesting);
       if (data != null) {
         //if (client.available() > 0) {
         System.arraycopy(data, 0, data, 0, data.length - 1);
-        println(data.length);
-        packet = null;
+        Packet packet = null;
         try {
           packet = ps.deserialize(data);
           if (packet.getType() == PacketType.STATE) {
-            println("got state instead");
-          }
-          if (packet.getType() == PacketType.JOIN) {
             ArrayList list = packet.getData();
             world = new World(packet.getRingRadius());
-            PlayerData player = (PlayerData) list.get(0);
-            if (player_name.equals(player.name)) {
-              controlled_unit = new Unit(player, world);
-              gameObjs.add(controlled_unit);
+            gameObjs.clear();
+            for (Object obj : list) {
+              if (obj instanceof PlayerData) {
+                PlayerData player = (PlayerData) obj;
+                Unit unit = new Unit(player, world);
+                if (player_name.equals(unit.getName())) {
+                  this.controlled_unit = unit;
+                  hud.update(unit, packet.getDuration());
+                }
+                gameObjs.add(unit);
+              } else if (obj instanceof FireballData) {
+                FireballData fireball_data = (FireballData) obj;
+                Fireball fireball =  new Fireball(fireball_data);
+                gameObjs.add(fireball);
+              }
             }
           }
         } 
@@ -98,6 +61,8 @@ class GameClient extends Level {
     } 
     while (controlled_unit == null || retry < 100);
     if (controlled_unit == null) {
+      println("failed to get my player unit");
+      closeConnection();
       loadLevel(new Menu());
     }
     hud = new Hud(controlled_unit);
@@ -172,12 +137,19 @@ class GameClient extends Level {
     hud.draw();
   }
 
+  public void disconnectEvent(Client client) {
+    println("server disconnected");
+    closeConnection();
+    loadLevel(new Menu());
+  }
+
   private void sendCommand(PVector target, Action action) {
     Packet packet = new Packet(PacketType.COMMAND, player_name, target.x, target.y, action);
     byte[] data = null;
     try {
       data = ps.serialize(packet);
       client.write(data);
+      client.write(interesting);
     } 
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
@@ -238,10 +210,14 @@ class GameClient extends Level {
     }
   }
 
-  public void stop() {
+  private void closeConnection() {
     if (client != null) {
       client.stop();
     }
+  }
+
+  public void stop() {
+    closeConnection();
   }
 
   public void mousePressed() {

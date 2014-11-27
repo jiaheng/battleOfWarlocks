@@ -60,6 +60,7 @@ class GameServer extends Level {
     Client client = server.available();
     if (client !=null && client.available() > 0) {
       byte[] data = client.readBytesUntil(interesting);
+      if (data == null) return;
       System.arraycopy(data, 0, data, 0, data.length - 1);
       Packet packet = null;
       try {
