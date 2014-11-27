@@ -56,9 +56,11 @@ class GameServer extends Level {
   }
 
   private void receiveCommand() {
-    Client client = server.avalable();
+    // Get the next available client
+    Client client = server.available();
     if (client !=null && client.available() > 0) {
       byte[] data = client.readBytesUntil(interesting);
+      System.arraycopy(data, 0, data, 0, data.length - 1);
       Packet packet = null;
       try {
         packet = ps.deserialize(data);
@@ -71,7 +73,6 @@ class GameServer extends Level {
       catch (ClassNotFoundException e) {
         System.err.println("Caught ClassNotFoundException: " + e.getMessage());
         e.printStackTrace();
-        exit();
         return;
       }
       // a Player trying to join during game
@@ -83,34 +84,36 @@ class GameServer extends Level {
     }
   }
 
-  public void draw() {
-    // Get the next available client
-    Client client = server.available();
-    // If the client is not null, and says something, display what it said
-    if (client !=null && client.available() > 0) {
-      byte[] data = client.readBytes();
-      Packet packet = null;
-      try {
-        packet = ps.deserialize(data);
-      } 
-      catch (IOException e) {
-        System.err.println("Caught IOException: " + e.getMessage());
-        e.printStackTrace();
-        return;
-      } 
-      catch (ClassNotFoundException e) {
-        System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-        e.printStackTrace();
-        exit();
-        return;
+  private void sendState() {
+    ArrayList list = new ArrayList();
+    for (GameObject obj : gameObjs) {
+      if (obj instanceof Unit) {
+        Unit unit = (Unit) obj;
+        PlayerData player = new PlayerData(unit);
+        list.add(player);
+      } else if (obj instanceof Fireball) {
+        Fireball fireball = (Fireball) obj;
+        FireballData fireball_data = new FireballData(fireball);
+        list.add(fireball_data);
       }
-      // a Player trying to join during game
-      if (packet.getType() == PacketType.JOIN) {
-        server.disconnect(client);
-      } else if (packet.getType() == PacketType.COMMAND) {
-        processCommand(packet, client.ip());
-      }
+    }
+
+    Packet packet = new Packet(PacketType.STATE, world.getRadius(), hud.getDuration(), list);
+    byte[] data = null;
+    try {
+      data = ps.serialize(packet);
+      server.write(data);
+      server.write(interesting);
+      //println(data.length);
     } 
+    catch (IOException e) {
+      System.err.println("Caught IOException: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+  public void draw() {
+    receiveCommand();
 
     world.update();
     world.draw();
@@ -137,37 +140,13 @@ class GameServer extends Level {
     hud.update();
     hud.draw();
 
-    // send packet
     if (timer > 0) {
       timer--;
       return;
+    } else {
+      sendState();
+      timer = 3;
     }
-    ArrayList list = new ArrayList();
-    for (GameObject obj : gameObjs) {
-      if (obj instanceof Unit) {
-        Unit unit = (Unit) obj;
-        PlayerData player = new PlayerData(unit);
-        list.add(player);
-      } else if (obj instanceof Fireball) {
-        Fireball fireball = (Fireball) obj;
-        FireballData fireball_data = new FireballData(fireball);
-        list.add(fireball_data);
-      }
-    }
-
-    Packet packet = new Packet(PacketType.STATE, world.getRadius(), hud.getDuration(), list);
-    byte[] data = null;
-    try {
-      data = ps.serialize(packet);
-      server.write(data);
-      server.write(interesting);
-      //println(data.length);
-    } 
-    catch (IOException e) {
-      System.err.println("Caught IOException: " + e.getMessage());
-      e.printStackTrace();
-    }
-    timer = 3;
   }
 
   private void removePlayer(String ip) {

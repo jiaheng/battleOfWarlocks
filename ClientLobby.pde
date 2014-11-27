@@ -28,7 +28,7 @@ class ClientLobby extends Level {
     }
   }
 
-  private void receiveList() {
+  private void receiveData() {
     byte[] data = client.readBytesUntil(interesting);
     if (data == null) return;
     System.arraycopy(data, 0, data, 0, data.length - 1);
@@ -45,6 +45,8 @@ class ClientLobby extends Level {
             players.add(player);
           }
         }
+      } else if (packet.getType() == PacketType.START) {
+        loadLevel(new GameClient(client));
       }
     } 
     catch (IOException e) {
@@ -66,7 +68,7 @@ class ClientLobby extends Level {
   }
 
   public void draw() {
-    receiveList();
+    receiveData();
     background(bg);
     fill(0);
     rect((width-WIDTH)/2f, (height-LENGTH-100)/2f, WIDTH, LENGTH);

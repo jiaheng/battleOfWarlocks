@@ -15,11 +15,6 @@ class GameClient extends Level {
   }
 
   public void begin() {
-    /*client = new Client(parent, "127.0.0.1", PORT_NUM);
-     if (client == null) {
-     println("unable to join");
-     exit();
-     }*/
     Packet packet = new Packet(PacketType.JOIN, player_name);
     byte[] data = null;
     try {
@@ -216,8 +211,6 @@ class GameClient extends Level {
       } else if (command != Action.NOTHING) { //if a button is clicked
         selectAction(command);
       }
-      //PVector target = new PVector(mouseX, mouseY);
-      //controlled_unit.cast(target);
     }
   }
 
@@ -229,7 +222,7 @@ class GameClient extends Level {
     } else if (key == 'b' || key == 'B') {
       selectAction(Action.BLINK);
     } else if (key == 's' || key == 'S') {
-      controlled_unit.command(null, Action.NOTHING);
+      sendCommand(new PVector(0, 0), issue_cmd);
     }
   }
 

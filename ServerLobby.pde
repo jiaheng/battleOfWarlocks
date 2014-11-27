@@ -223,6 +223,7 @@ class ServerLobby extends Level {
         if (total_player<2) {
           msg = "Not enough player\nneed at least 2 players to play the game";
         }
+        startGame();
         return;
       case BACK:
         closeConnection();
