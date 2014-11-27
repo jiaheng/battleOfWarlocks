@@ -31,7 +31,7 @@ class ServerLobby extends Level {
     buttons.add(button);
     button = new Button(ButtonAction.BACK, width/2+50, height-100, button_width, button_height, "BACK");
     buttons.add(button);
-    createPlayer(player_name, "this");
+    createPlayer(player_name, "host");
   }
   
   private void closeConnection() {
@@ -109,7 +109,7 @@ class ServerLobby extends Level {
     Packet packet = new Packet(PacketType.START);
     byte[] data = null;
     try {
-      data = ps.serialize(packet)
+      data = ps.serialize(packet);
       server.write(data);
       server.write(interesting);
     } catch (IOException e) {

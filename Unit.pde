@@ -24,7 +24,7 @@ class Unit extends GameObject {
   private PVector force_acc = new PVector(0,0);
   private int time_in_lava = -1;
   
-  Unit(int x, int y, float orientation, String name, color colour, World world) {
+  Unit(float x, float y, float orientation, String name, color colour, World world) {
     this.orientation = orientation;
     this.name = name;
     this.world = world;

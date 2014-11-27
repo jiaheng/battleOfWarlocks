@@ -2,10 +2,11 @@ import processing.net.*;
 import java.lang.ClassLoader.*;
 
 class GameServer extends Level {
-  
+
+  private ArrayList<Player> players = new ArrayList<Player>();
   private HashMap<String, Unit> units = new HashMap<String, Unit>(10);
   private int total_player = 0;
-  
+
   private PacketSerializer ps = new PacketSerializer();
   private Server server;
   private int init_minute, init_second;
@@ -13,31 +14,47 @@ class GameServer extends Level {
   private Unit controlled_unit;  
   private Hud hud;
   private Action issue_cmd = Action.NOTHING;
-  
+
   private int timer = 0;
-  
+
+  GameServer(Server server, ArrayList<Player> players) {
+    this.server = server;
+    this.players = players;
+    this.total_player = players.size();
+  }
+
   public void begin() {
     server = new Server(parent, PORT_NUM);
     init_minute = minute();
     init_second = second();
     world = new World(init_second);
-    
-    controlled_unit = createPlayer(player_name);
-    units.put("host", controlled_unit);
-    gameObjs.add(controlled_unit);
-    
+
+    createUnit();
+    if (controlled_unit == null) {
+      println("unable to find the controlled unit");
+      exit();
+      return;
+    }
     hud = new Hud(controlled_unit);
   }
-  
-  private Unit createPlayer(String name) {
-    color from = color(255,0,0);
-    color to = color(0,0,255);
-    float inc = (total_player)/10f;
-    Unit u = new Unit(width/2, height/2, 0, name, lerpColor(from, to, inc), world);
-    total_player++;
-    return u;
+
+  private void createUnit() {
+    float angle = TWO_PI/total_player;
+    float orientation = 0;
+    PVector spawn_point = new PVector(-1, 0);
+    spawn_point.mult(200);
+    for (Player player : players) {
+      color unit_color = color(player.getColor());
+      Unit unit = new Unit(spawn_point.x, spawn_point.y, orientation, player.getName(), unit_color, world);
+      String ip = player.getIp();
+      if (ip.equals("host")) {
+        controlled_unit = unit;
+      }
+      units.put(ip, unit);
+      gameObjs.add(unit);
+    }
   }
-  
+
   public void draw() {
     // Get the next available client
     Client client = server.available();
@@ -47,67 +64,51 @@ class GameServer extends Level {
       Packet packet = null;
       try {
         packet = ps.deserialize(data);
-      } catch (IOException e) {
+      } 
+      catch (IOException e) {
         System.err.println("Caught IOException: " + e.getMessage());
         e.printStackTrace();
         return;
-      } catch (ClassNotFoundException e) {
+      } 
+      catch (ClassNotFoundException e) {
         System.err.println("Caught ClassNotFoundException: " + e.getMessage());
         e.printStackTrace();
         exit();
         return;
       }
-      // a Player joining
+      // a Player trying to join during game
       if (packet.getType() == PacketType.JOIN) {
-        println(client.ip() + " is joining the game");
-        Unit u = createPlayer(packet.getName());
-        gameObjs.add(u);
-        units.put(client.ip(), u);
-        ArrayList list = new ArrayList();
-        PlayerData player = new PlayerData(u);
-        list.add(player);
-        packet = new Packet(PacketType.JOIN, world.getRadius(), hud.getDuration(), list);
-        try {
-          data = ps.serialize(packet);
-          println(data.length);
-          client.write(data);
-          client.write(interesting);
-        } catch (IOException e) {
-          System.err.println("Caught IOException: " + e.getMessage());
-          e.printStackTrace();
-          exit();
-          return;
-        }
+        server.disconnect(client);
       } else if (packet.getType() == PacketType.COMMAND) {
         processCommand(packet, client.ip());
       }
     } 
-    
+
     world.update();
     world.draw();
-    
+
     for (GameObject obj : gameObjs) {
       obj.update();
     }
-  
+
     for (GameObject obj : gameObjs) {
       checkCollisions(obj);
       obj.draw();
     }
-    
+
     for (GameObject obj : addToWorld) {
       gameObjs.add(obj);
     }
-      addToWorld.clear();
-  
+    addToWorld.clear();
+
     for (GameObject obj : removeFromWorld) {
       gameObjs.remove(obj);
     }
     removeFromWorld.clear();
-    
+
     hud.update();
     hud.draw();
-    
+
     // send packet
     if (timer > 0) {
       timer--;
@@ -125,7 +126,7 @@ class GameServer extends Level {
         list.add(fireball_data);
       }
     }
-    
+
     Packet packet = new Packet(PacketType.STATE, world.getRadius(), hud.getDuration(), list);
     byte[] data = null;
     try {
@@ -133,29 +134,30 @@ class GameServer extends Level {
       server.write(data);
       server.write(interesting);
       //println(data.length);
-    } catch (IOException e) {
+    } 
+    catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
     }
     timer = 3;
   }
-  
+
   private void processCommand(Packet packet, String ip) {
     String name = packet.getName();
     PVector target = new PVector(packet.getX(), packet.getY());
     Action action = packet.getAction();
     Unit unit = units.get(ip);
     if (name.equals(unit.getName())) {
-        unit.command(target, action);
+      unit.command(target, action);
     }
     /*for(Unit unit : units) {
-      if (name.equals(unit.getName())) {
-        unit.command(target, action);
-        break;
-      }
-    }*/
+     if (name.equals(unit.getName())) {
+     unit.command(target, action);
+     break;
+     }
+     }*/
   }
-  
+
   private void checkCollisions(GameObject other) {
     for (GameObject obj : gameObjs) {
       if (obj != other && obj.collidingWith(other)) {
@@ -163,7 +165,7 @@ class GameServer extends Level {
       }
     }
   }
-  
+
   public void mouseReleased() {
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
@@ -186,7 +188,7 @@ class GameServer extends Level {
       //controlled_unit.cast(target);
     }
   }
-  
+
   public void keyReleased() {
     if (key == 'f' || key == 'F') {
       selectAction(Action.FIREBALL);
@@ -198,7 +200,7 @@ class GameServer extends Level {
       controlled_unit.command(null, Action.NOTHING);
     }
   }
-  
+
   private void selectAction(Action action) {
     int cooldown = controlled_unit.getCooldown(action);
     if (cooldown == 0) {
@@ -210,14 +212,18 @@ class GameServer extends Level {
       println("error!");
     }
   }
-  
+
   public void stop() {
     if (server != null) {
       server.stop();
     }
   }
-  
-  public void mouseDragged() {}
-  public void mousePressed() {}
-  public void keyPressed() {}
+
+  public void mouseDragged() {
+  }
+  public void mousePressed() {
+  }
+  public void keyPressed() {
+  }
 }
+
