@@ -36,6 +36,7 @@ class ServerLobby extends Level {
 
   private void closeConnection() {
     if (server != null) {
+      println("server is closing");
       server.stop();
     }
   }
@@ -83,13 +84,17 @@ class ServerLobby extends Level {
           println(client.ip() + " is joining the game");
           if (createPlayer(packet.getName(), client.ip())) {
             packet = new Packet(PacketType.ACCEPT);
+            data = ps.serialize(packet);
+            client.write(data);
+            client.write(interesting);
           } else {
             packet = new Packet(PacketType.REJECT);
+            data = ps.serialize(packet);
+            client.write(data);
+            client.write(interesting);
+            println("disconnecting client " + client.ip());
+            server.disconnect(client);
           }
-          data = ps.serialize(packet);
-          client.write(data);
-          client.write(interesting);
-          server.disconnect(client);
         } else {
           server.disconnect(client);
         }

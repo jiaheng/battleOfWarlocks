@@ -35,7 +35,6 @@ class GameClient extends Level {
                 Unit unit = new Unit(player, world);
                 if (player_name.equals(unit.getName())) {
                   this.controlled_unit = unit;
-                  hud.update(unit, packet.getDuration());
                 }
                 gameObjs.add(unit);
               } else if (obj instanceof FireballData) {
@@ -68,9 +67,9 @@ class GameClient extends Level {
     hud = new Hud(controlled_unit);
   }
 
-  private void processPacket() {
+  private boolean processPacket() {
     byte[] data = client.readBytesUntil(interesting);
-    if (data == null) return;
+    if (data == null) return false;
     System.arraycopy(data, 0, data, 0, data.length - 1);
     Packet packet = null;
     try {
@@ -79,12 +78,12 @@ class GameClient extends Level {
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
-      return;
+      return false;
     } 
     catch (ClassNotFoundException e) {
       System.err.println("Caught ClassNotFoundException: " + e.getMessage());
       e.printStackTrace();
-      return;
+      return false;
     }
     if (packet.getType() == PacketType.STATE) {
       ArrayList list = packet.getData();
@@ -105,14 +104,15 @@ class GameClient extends Level {
           gameObjs.add(fireball);
         }
       }
+      return true;
+    } else {
+      return false;
     }
   }
 
   public void draw() {    
     byte[] data;
-    if (client.available() > 0) { 
-      processPacket();
-    } else {
+    if (!processPacket()) {
       // update obj
       for (GameObject obj : gameObjs) {
         obj.update();

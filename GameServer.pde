@@ -24,7 +24,6 @@ class GameServer extends Level {
   }
 
   public void begin() {
-    server = new Server(parent, PORT_NUM);
     init_minute = minute();
     init_second = second();
     world = new World(init_second);
@@ -41,9 +40,11 @@ class GameServer extends Level {
   private void createUnit() {
     float angle = TWO_PI/total_player;
     float orientation = 0;
-    PVector spawn_point = new PVector(-1, 0);
-    spawn_point.mult(200);
+    PVector spawn_vector = new PVector(-1, 0);
+    spawn_vector.mult(250);
     for (Player player : players) {
+      PVector spawn_point = new PVector(width/2, height/2);
+      spawn_point.add(spawn_vector);
       color unit_color = color(player.getColor());
       Unit unit = new Unit(spawn_point.x, spawn_point.y, orientation, player.getName(), unit_color, world);
       String ip = player.getIp();
@@ -52,6 +53,9 @@ class GameServer extends Level {
       }
       units.put(ip, unit);
       gameObjs.add(unit);
+      spawn_vector.rotate(angle);
+      orientation -= angle;
+      if (orientation > PI) orientation = TWO_PI - orientation;
     }
   }
 
