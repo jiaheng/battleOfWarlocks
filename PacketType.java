@@ -1,0 +1,3 @@
+public enum PacketType {
+  COMMAND, STATE, JOIN, PLAYER, ACCEPT, LIST, REJECT,START,END
+}

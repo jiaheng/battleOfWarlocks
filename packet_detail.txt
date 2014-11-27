@@ -1,0 +1,14 @@
+server send
+
+game objeect
+HashMap of player remove player from game object?
+ring radius
+duration of round?
+
+client send
+player command only
+disconnect?
+
+* Unit contain ip
+* hud need update player everytime
+
