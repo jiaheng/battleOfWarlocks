@@ -70,19 +70,20 @@ class GameClient extends Level {
   private boolean processPacket() {
     byte[] data = client.readBytesUntil(interesting);
     if (data == null) return false;
+    if (data.length < 512) return false;
     System.arraycopy(data, 0, data, 0, data.length - 1);
     Packet packet = null;
     try {
       packet = ps.deserialize(data);
     } 
     catch (IOException e) {
-      System.err.println("Caught IOException: " + e.getMessage());
-      e.printStackTrace();
+      //System.err.println("Caught IOException: " + e.getMessage());
+      //e.printStackTrace();
       return false;
     } 
     catch (ClassNotFoundException e) {
-      System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-      e.printStackTrace();
+      //System.err.println("Caught ClassNotFoundException: " + e.getMessage());
+      //e.printStackTrace();
       return false;
     }
     if (packet.getType() == PacketType.STATE) {
