@@ -1,49 +1,49 @@
 class Game extends Level {
-  
+
   private int init_minute, init_second;
   private World world;
   private Unit controlled_unit;  
   private Hud hud;
   private Action issue_cmd = Action.NOTHING;
-  
+
   public void begin() {
     init_minute = minute();
     init_second = second();
     world = new World(init_second);
-    
-    Unit u1 = new Unit(width/2, height/2, 0f, "You", color(255,0,0), world);
-    Unit u2 = new Unit(width/2+100, height/2-150, 0f, "unknown", color(255,255,0), world);
+
+    Unit u1 = new Unit(width/2, height/2, 0f, "You", color(255, 0, 0), world);
+    Unit u2 = new Unit(width/2+100, height/2-150, 0f, "unknown", color(255, 255, 0), world);
     gameObjs.add(u1);
     gameObjs.add(u2);
     controlled_unit = u1;
     hud = new Hud(controlled_unit);
   }
-  
+
   public void draw() {
     world.draw();
-    
+
     for (GameObject obj : gameObjs) {
       obj.update();
     }
-	
+
     for (GameObject obj : gameObjs) {
       checkCollisions(obj);
       obj.draw();
     }
-    
+
     for (GameObject obj : addToWorld) {
       gameObjs.add(obj);
     }
-      addToWorld.clear();
-  
+    addToWorld.clear();
+
     for (GameObject obj : removeFromWorld) {
       gameObjs.remove(obj);
     }
     removeFromWorld.clear();
-    
+
     hud.draw();
   }
-  
+
   private void checkCollisions(GameObject other) {
     for (GameObject obj : gameObjs) {
       if (obj != other && obj.collidingWith(other)) {
@@ -51,7 +51,7 @@ class Game extends Level {
       }
     }
   }
-  
+
   public void mouseReleased() {
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
@@ -74,7 +74,7 @@ class Game extends Level {
       //controlled_unit.cast(target);
     }
   }
-  
+
   public void keyReleased() {
     if (key == 'f' || key == 'F') {
       selectAction(Action.FIREBALL);
@@ -82,7 +82,7 @@ class Game extends Level {
       selectAction(Action.MOVE);
     }
   }
-  
+
   private void selectAction(Action action) {
     int cooldown = controlled_unit.getCooldown(action);
     if (cooldown == 0) {
@@ -94,9 +94,14 @@ class Game extends Level {
       println("error!");
     }
   }
-  
-  public void mouseDragged() {}
-  public void mousePressed() {}
-  public void keyPressed() {}
-  public void stop() {}
+
+  public void mouseDragged() {
+  }
+  public void mousePressed() {
+  }
+  public void keyPressed() {
+  }
+  public void stop() {
+  }
 }
+

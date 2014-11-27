@@ -2,7 +2,7 @@ abstract class Level {
   public ArrayList<GameObject> gameObjs = new ArrayList<GameObject>();
   public ArrayList<GameObject> addToWorld = new ArrayList<GameObject>();
   public ArrayList<GameObject> removeFromWorld = new ArrayList<GameObject>();
-  
+
   public abstract void draw();
   public abstract void begin();
   public abstract void stop();
@@ -11,6 +11,8 @@ abstract class Level {
   public abstract void mouseReleased();
   public abstract void keyPressed();
   public abstract void keyReleased();
-  
-  void disconnectEvent(Client client) {}
+
+  void disconnectEvent(Client client) {
+  }
 }
+

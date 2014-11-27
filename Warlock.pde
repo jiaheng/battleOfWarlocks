@@ -12,7 +12,7 @@ String player_name = "player name";
 
 void setup() {
   size(800, 800);
-  
+
   blink_icon = loadImage("blink_icon.png");
   fireball_icon = loadImage("fireball_icon.png");
   fireball_img = loadImage("fireball.png");
@@ -26,7 +26,7 @@ void setup() {
     }
   }
   bg.endDraw();
-  
+
   loadLevel(new Menu());
 }
 
@@ -66,3 +66,4 @@ void loadLevel(Level level) {
   current_level = level;
   level.begin();
 }
+

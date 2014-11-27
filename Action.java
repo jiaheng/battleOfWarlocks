@@ -1,3 +1,4 @@
 public enum Action {
-    NOTHING, MOVE, FIREBALL, BLINK
+  NOTHING, MOVE, FIREBALL, BLINK
 }
+

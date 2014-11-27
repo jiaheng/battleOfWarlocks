@@ -1,18 +1,18 @@
 import processing.net.*;
 
 class ClientLobby extends Level {
-  
+
   private int WIDTH = 500;
   private int LENGTH = 600;
   private ArrayList<Player> players = new ArrayList<Player>();
   private ArrayList<Button> buttons = new ArrayList<Button>();
   private PacketSerializer ps = new PacketSerializer();  
   private Client client;
-  
+
   ClientLobby(Client client) {
     this.client = client;
   } 
-  
+
   public void begin() {
     Button button;
     int button_height = 50;
@@ -20,14 +20,14 @@ class ClientLobby extends Level {
     button = new Button(ButtonAction.BACK, width/2+50, height-100, button_width, button_height, "BACK");
     buttons.add(button);
   }
-  
+
   private void closeConnection() {
     if (client != null) {
       println("disconnecting from client lobby");
       client.stop();
     }
   }
-  
+
   private void receiveList() {
     byte[] data = client.readBytesUntil(interesting);
     if (data == null) return;
@@ -46,23 +46,25 @@ class ClientLobby extends Level {
           }
         }
       }
-    } catch (IOException e) {
+    } 
+    catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
       return;
-    } catch (ClassNotFoundException e) {
+    } 
+    catch (ClassNotFoundException e) {
       System.err.println("Caught ClassNotFoundException: " + e.getMessage());
       e.printStackTrace();
       return;
     }
   }
-  
+
   public void disconnectEvent(Client client) {
     println("Server disconnected");
     closeConnection();
     loadLevel(new Menu());
   }
-  
+
   public void draw() {
     receiveList();
     background(bg);
@@ -85,21 +87,21 @@ class ClientLobby extends Level {
       button.draw();
     }
   }
-  
+
   private Button selectedButton() {
     for (Button button : buttons) {
       if (button.overButton()) return button;
     }
     return null;
   }
-  
+
   public void mousePressed() {
     Button selected_button = selectedButton();
     if (selected_button != null) {
       selected_button.highlight();
     }
   }
-  
+
   public void mouseDragged() {
     for (Button button : buttons) {
       button.unhighlight();
@@ -109,7 +111,7 @@ class ClientLobby extends Level {
       selected_button.highlight();
     }
   }
-  
+
   public void mouseReleased() {
     for (Button button : buttons) {
       button.unhighlight();
@@ -118,19 +120,22 @@ class ClientLobby extends Level {
     if (selected_button != null) {
       ButtonAction action = selected_button.getAction();
       switch(action) {
-        case BACK:
-          closeConnection();
-          loadLevel(new Menu());
-        default:
-          println("error!");
-          return;
+      case BACK:
+        closeConnection();
+        loadLevel(new Menu());
+      default:
+        println("error!");
+        return;
       }
     }
   }
-  public void keyPressed() {}
-  public void keyReleased() {}
-  
+  public void keyPressed() {
+  }
+  public void keyReleased() {
+  }
+
   public void stop() {
     closeConnection();
   }
 }
+

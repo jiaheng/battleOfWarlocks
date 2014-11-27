@@ -1,19 +1,19 @@
 class World {  
-  
+
   private static final float INITIAL_RING_RADIUS = 320f;
   private static final int RING_REDUCE_TIME = 40;
   private static final int RING_INTERVAL = 10;
   private static final float RING_REDUCE_INC = 5f;
-  
+
   public final float LAVA_DMG = 10f; // 10 dmg per second 
-    
+
   private final int start_time;
-  
+
   private float ring_radius = INITIAL_RING_RADIUS;
   private int ring_time;
   private boolean smaller_ring = false;
   private float ring_reduce = 10f;
-  
+
   World(int start_time) {
     this.start_time = start_time;
   }
@@ -43,11 +43,11 @@ class World {
       }
     }
   }
-  
+
   public float getRadius() {
     return ring_radius;
   }
-  
+
   public void draw() {
     background(bg);
     if (ring_radius > 0) {
@@ -59,3 +59,4 @@ class World {
     }
   }
 }
+

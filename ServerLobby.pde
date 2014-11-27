@@ -1,15 +1,15 @@
 import processing.net.*;
 
 class ServerLobby extends Level {
-  
+
   private color[] color_list = new color[] {
-    color(#FF0000),
-    color(#1400FF),
-    color(#A900FF),
-    color(#FFF300),
-    color(#11DB00),
-    color(#FC36B4),
-    color(#9B6000),
+    color(#FF0000), 
+    color(#1400FF), 
+    color(#A900FF), 
+    color(#FFF300), 
+    color(#11DB00), 
+    color(#FC36B4), 
+    color(#9B6000), 
     color(#1FFFEA)
   };
   private int WIDTH = 500;
@@ -21,7 +21,7 @@ class ServerLobby extends Level {
   private int timer = 0;
   private int total_player = 0;
   private String msg = "";
-  
+
   public void begin() {
     Button button;
     int button_height = 50;
@@ -33,13 +33,13 @@ class ServerLobby extends Level {
     buttons.add(button);
     createPlayer(player_name, "host");
   }
-  
+
   private void closeConnection() {
     if (server != null) {
       server.stop();
     }
   }
-  
+
   private color getUnusedColor() {
     for (color c : color_list) {
       boolean unused = true;
@@ -53,7 +53,7 @@ class ServerLobby extends Level {
     }
     return -1;
   }
-  
+
   private boolean createPlayer(String name, String ip) {
     if (total_player >= 8) return false;
     color unit_color = getUnusedColor();
@@ -66,7 +66,7 @@ class ServerLobby extends Level {
     total_player++;
     return true;
   }
-  
+
   private void findPlayer() {
     // Get the next available client
     Client client = server.available();
@@ -89,22 +89,24 @@ class ServerLobby extends Level {
           data = ps.serialize(packet);
           client.write(data);
           client.write(interesting);
-          client.stop();
+          server.disconnect(client);
         } else {
           server.disconnect(client);
         }
-      } catch (IOException e) {
+      } 
+      catch (IOException e) {
         System.err.println("Caught IOException: " + e.getMessage());
         e.printStackTrace();
         return;
-      } catch (ClassNotFoundException e) {
+      } 
+      catch (ClassNotFoundException e) {
         System.err.println("Caught ClassNotFoundException: " + e.getMessage());
         e.printStackTrace();
         return;
       }
-    } 
+    }
   }
-  
+
   private void startGame() {
     Packet packet = new Packet(PacketType.START);
     byte[] data = null;
@@ -112,13 +114,14 @@ class ServerLobby extends Level {
       data = ps.serialize(packet);
       server.write(data);
       server.write(interesting);
-    } catch (IOException e) {
+    } 
+    catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
     }
     loadLevel(new GameServer(server, players));
   }
-  
+
   private void sendList() {
     ArrayList list = new ArrayList();
     for (Player player : players) {
@@ -132,12 +135,13 @@ class ServerLobby extends Level {
       server.write(data);
       server.write(interesting);
       //println(data.length);
-    } catch (IOException e) {
+    } 
+    catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
     }
   }
-  
+
   private void removePlayer(String ip) {
     for (Player player : players) {
       if (player.getIp().equals(ip)) {
@@ -147,12 +151,12 @@ class ServerLobby extends Level {
       }
     }
   }
-  
+
   public void disconnectEvent(Client client) {
     println(client.ip() + " disconnected");
     removePlayer(client.ip());
   }
-  
+
   public void draw() {
     findPlayer();
     background(bg);
@@ -182,21 +186,21 @@ class ServerLobby extends Level {
       timer = 5;
     }
   }
-  
+
   private Button selectedButton() {
     for (Button button : buttons) {
       if (button.overButton()) return button;
     }
     return null;
   }
-  
+
   public void mousePressed() {
     Button selected_button = selectedButton();
     if (selected_button != null) {
       selected_button.highlight();
     }
   }
-  
+
   public void mouseDragged() {
     for (Button button : buttons) {
       button.unhighlight();
@@ -206,7 +210,7 @@ class ServerLobby extends Level {
       selected_button.highlight();
     }
   }
-  
+
   public void mouseReleased() {
     for (Button button : buttons) {
       button.unhighlight();
@@ -215,25 +219,28 @@ class ServerLobby extends Level {
     if (selected_button != null) {
       ButtonAction action = selected_button.getAction();
       switch(action) {
-        case START:
-          if (total_player<2) {
-            msg = "Not enough player\nneed at least 2 players to play the game";
-          }
-          return;
-        case BACK:
-          closeConnection();
-          loadLevel(new Menu());
-          return;
-        default:
-          println("error!");
-          return;
+      case START:
+        if (total_player<2) {
+          msg = "Not enough player\nneed at least 2 players to play the game";
+        }
+        return;
+      case BACK:
+        closeConnection();
+        loadLevel(new Menu());
+        return;
+      default:
+        println("error!");
+        return;
       }
     }
   }
-  public void keyPressed() {}
-  public void keyReleased() {}
-  
+  public void keyPressed() {
+  }
+  public void keyReleased() {
+  }
+
   public void stop() {
     closeConnection();
   }
 }
+

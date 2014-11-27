@@ -55,6 +55,34 @@ class GameServer extends Level {
     }
   }
 
+  private void receiveCommand() {
+    Client client = server.avalable();
+    if (client !=null && client.available() > 0) {
+      byte[] data = client.readBytesUntil(interesting);
+      Packet packet = null;
+      try {
+        packet = ps.deserialize(data);
+      } 
+      catch (IOException e) {
+        System.err.println("Caught IOException: " + e.getMessage());
+        e.printStackTrace();
+        return;
+      } 
+      catch (ClassNotFoundException e) {
+        System.err.println("Caught ClassNotFoundException: " + e.getMessage());
+        e.printStackTrace();
+        exit();
+        return;
+      }
+      // a Player trying to join during game
+      if (packet.getType() == PacketType.JOIN) {
+        server.disconnect(client);
+      } else if (packet.getType() == PacketType.COMMAND) {
+        processCommand(packet, client.ip());
+      }
+    }
+  }
+
   public void draw() {
     // Get the next available client
     Client client = server.available();
@@ -142,20 +170,33 @@ class GameServer extends Level {
     timer = 3;
   }
 
+  private void removePlayer(String ip) {
+    Unit exist = units.remove(ip);
+    if (exist == null) return; //exit if the player doesnt exist
+    for (Player player : players) {
+      if (player.getIp().equals(ip)) {
+        players.remove(player);
+      }
+    }
+    total_player--;
+  }
+
+  public void disconnectEvent(Client client) {
+    println(client.ip() + " disconnected");
+    removePlayer(client.ip());
+  }
+
   private void processCommand(Packet packet, String ip) {
     String name = packet.getName();
     PVector target = new PVector(packet.getX(), packet.getY());
     Action action = packet.getAction();
     Unit unit = units.get(ip);
+    if (unit == null) {
+      return;
+    }
     if (name.equals(unit.getName())) {
       unit.command(target, action);
     }
-    /*for(Unit unit : units) {
-     if (name.equals(unit.getName())) {
-     unit.command(target, action);
-     break;
-     }
-     }*/
   }
 
   private void checkCollisions(GameObject other) {
