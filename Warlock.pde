@@ -3,6 +3,7 @@ import processing.net.*;
 static final String PATH = "/home/jiaheng/Desktop/VG-CW3/code/Warlock/";
 static Level current_level;
 static final int PORT_NUM = 52042;
+static final String HOST = "host";
 
 byte interesting = (byte) 127;
 final PApplet parent = this;

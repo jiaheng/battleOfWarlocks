@@ -4,6 +4,7 @@ class SkillButton {
 
   private final int total_cooldown;
 
+  private boolean disabled = false;
   private int current_cooldown;
   private int button_x, button_y;
   private PImage icon;
@@ -34,6 +35,22 @@ class SkillButton {
       textAlign(CENTER);
       text(ceil(current_cooldown/60f), button_x+SIZE/2, button_y+9+SIZE/2);
     }
+    if (disabled) {
+      fill(0, 75);
+      rect(button_x, button_y, SIZE, SIZE);
+    }
+  }
+
+  public void disable() {
+    disabled = true;
+  }
+
+  public void enable() {
+    disabled = false;
+  }
+
+  public boolean isDisable() {
+    return disabled;
   }
 
   public boolean overButton() {

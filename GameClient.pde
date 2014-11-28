@@ -9,7 +9,13 @@ class GameClient extends Level {
   private World world;
   private Unit controlled_unit = null;
   private Action issue_cmd = Action.NOTHING;
-
+  private ArrayList<Unit> units = new ArrayList<Unit>();
+  
+  private String msg = "";
+  private boolean pregame = true;
+  private int pregame_timer = 300;
+  private boolean endgame = false;
+  
   GameClient(Client client) {
     this.client = client;
   }
@@ -36,6 +42,7 @@ class GameClient extends Level {
                 if (player_name.equals(unit.getName())) {
                   this.controlled_unit = unit;
                 }
+                units.add(unit);
                 gameObjs.add(unit);
               } else if (obj instanceof FireballData) {
                 FireballData fireball_data = (FireballData) obj;
@@ -47,13 +54,13 @@ class GameClient extends Level {
         } 
         catch (IOException e) {
           //println("problem reading packet");
-          System.err.println("Caught IOException: " + e.getMessage());
+          //System.err.println("Caught IOException: " + e.getMessage());
           //e.printStackTrace();
         } 
         catch (ClassNotFoundException e) {
           System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-          e.printStackTrace();
-          exit();
+          //e.printStackTrace();
+          //exit();
           return;
         }
       }
@@ -88,7 +95,10 @@ class GameClient extends Level {
     }
     if (packet.getType() == PacketType.STATE) {
       ArrayList list = packet.getData();
+      pregame = packet.isPregame();
+      pregame_timer = packet.getPregameTimer();
       world = new World(packet.getRingRadius());
+      units.clear();
       gameObjs.clear();
       for (Object obj : list) {
         if (obj instanceof PlayerData) {
@@ -99,6 +109,7 @@ class GameClient extends Level {
             hud.update(unit, packet.getDuration());
           }
           gameObjs.add(unit);
+          units.add(unit);
         } else if (obj instanceof FireballData) {
           FireballData fireball_data = (FireballData) obj;
           Fireball fireball =  new Fireball(fireball_data);
@@ -125,6 +136,12 @@ class GameClient extends Level {
     }
 
     world.draw();
+
+    if (pregame && pregame_timer > 0) {
+      fill(0);
+      text("Game will start in " + (pregame_timer/60 + 1), width/2, height/2);
+      pregame_timer--;
+    }
 
     for (GameObject obj : gameObjs) {
       obj.draw();

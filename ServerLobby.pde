@@ -31,7 +31,7 @@ class ServerLobby extends Level {
     buttons.add(button);
     button = new Button(ButtonAction.BACK, width/2+50, height-100, button_width, button_height, "BACK");
     buttons.add(button);
-    createPlayer(player_name, "host");
+    createPlayer(player_name, HOST);
   }
 
   private void closeConnection() {

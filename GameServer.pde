@@ -1,10 +1,12 @@
 import processing.net.*;
 import java.lang.ClassLoader.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class GameServer extends Level {
-
-  private ArrayList<Player> players = new ArrayList<Player>();
-  private HashMap<String, Unit> units = new HashMap<String, Unit>(10);
+  private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
+  private CopyOnWriteArrayList<GameObject> remove_from_game = new CopyOnWriteArrayList<GameObject>();
+  private ConcurrentHashMap<String, Unit> units = new ConcurrentHashMap<String, Unit>(10);
   private int total_player = 0;
 
   private PacketSerializer ps = new PacketSerializer();
@@ -15,11 +17,17 @@ class GameServer extends Level {
   private Hud hud;
   private Action issue_cmd = Action.NOTHING;
 
-  private int timer = 0;
+  private int packet_timer = 0;
+  private String msg = "";
+  private boolean pregame = true;
+  private int pregame_timer = 300;
+  private boolean endgame = false;
 
   GameServer(Server server, ArrayList<Player> players) {
     this.server = server;
-    this.players = players;
+    for (Player player : players) {
+      this.players.add(player);
+    }
     this.total_player = players.size();
   }
 
@@ -48,7 +56,7 @@ class GameServer extends Level {
       color unit_color = color(player.getColor());
       Unit unit = new Unit(spawn_point.x, spawn_point.y, orientation, player.getName(), unit_color, world);
       String ip = player.getIp();
-      if (ip.equals("host")) {
+      if (ip.equals(HOST)) {
         controlled_unit = unit;
       }
       units.put(ip, unit);
@@ -102,11 +110,11 @@ class GameServer extends Level {
         list.add(fireball_data);
       }
     }
-
-    Packet packet = new Packet(PacketType.STATE, world.getRadius(), hud.getDuration(), list);
+    Packet packet = new Packet(PacketType.STATE, world.getRadius(), pregame, pregame_timer, hud.getDuration(), list);
     byte[] data = null;
     try {
       data = ps.serialize(packet);
+      server.write(interesting);
       server.write(data);
       server.write(interesting);
       //println(data.length);
@@ -123,6 +131,16 @@ class GameServer extends Level {
     world.update();
     world.draw();
 
+    if (pregame) {
+      fill(0);
+      text("Game will start in " + (pregame_timer/60+1), width/2, height/2);
+      pregame_timer--;
+      if (pregame_timer < 0) {
+        hud.startTimer();
+        pregame = false;
+      }
+    }
+
     for (GameObject obj : gameObjs) {
       obj.update();
     }
@@ -138,30 +156,65 @@ class GameServer extends Level {
     addToWorld.clear();
 
     for (GameObject obj : removeFromWorld) {
+      if (obj instanceof Unit) {
+        Unit unit = (Unit) obj;
+        String name = unit.getName();
+        for (Player player : players) {
+          if (player.getName().equals(name)) {
+            player.killed();
+          }
+        }
+      }
       gameObjs.remove(obj);
     }
     removeFromWorld.clear();
 
+    for (GameObject obj : remove_from_game) {
+      gameObjs.remove(obj);
+    }
+    remove_from_game.clear();
+
+    //update score
+
+    // check if player is still alive
+    int num_alive = getPlayerAlive();
+    if (num_alive <= 1) {
+      endgame = true;
+    }
+
+    if (endgame) {
+      println("game should end");
+    }
+
     hud.update();
     hud.draw();
 
-    if (timer > 0) {
-      timer--;
+    if (packet_timer > 0) {
+      packet_timer--;
       return;
     } else {
       sendState();
-      timer = 3;
+      packet_timer = 3;
     }
   }
 
+  private int getPlayerAlive() {
+    int alive = 0;
+    for (Player player : players) {
+      if (!player.isDead()) alive++;
+    }
+    return alive;
+  }
+
   private void removePlayer(String ip) {
-    Unit exist = units.remove(ip);
-    if (exist == null) return; //exit if the player doesnt exist
+    Unit unit = units.remove(ip);
+    if (unit == null) return; //exit if the player doesnt exist
     for (Player player : players) {
       if (player.getIp().equals(ip)) {
         players.remove(player);
       }
     }
+    remove_from_game.add(unit); //remove from game objects
     total_player--;
   }
 
@@ -171,6 +224,7 @@ class GameServer extends Level {
   }
 
   private void processCommand(Packet packet, String ip) {
+    if (pregame || endgame) return; // all unit freeze before match start
     String name = packet.getName();
     PVector target = new PVector(packet.getX(), packet.getY());
     Action action = packet.getAction();
@@ -179,6 +233,14 @@ class GameServer extends Level {
       return;
     }
     if (name.equals(unit.getName())) {
+      unit.command(target, action);
+    }
+  }
+
+  private void processCommand(String ip, PVector target, Action action) {
+    if (pregame || endgame) return; // all unit freeze before match start
+    Unit unit = units.get(ip);
+    if (unit != null) {
       unit.command(target, action);
     }
   }
@@ -195,7 +257,7 @@ class GameServer extends Level {
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
       if (issue_cmd == Action.NOTHING) { // move command if no cmd issued
-        controlled_unit.command(target, Action.MOVE);
+        processCommand(HOST, target, Action.MOVE);
       } else { // if a cmd issued, cancel the cmd
         issue_cmd = Action.NOTHING;
         cursor(ARROW);
@@ -203,7 +265,7 @@ class GameServer extends Level {
     } else if (mouseButton == LEFT) {
       Action command = hud.getCommand();
       if (command == Action.NOTHING && issue_cmd != Action.NOTHING) { //if no button is clicked and there is a command issue
-        controlled_unit.command(target, issue_cmd);
+        processCommand(HOST, target, issue_cmd);
         cursor(ARROW);
         issue_cmd = Action.NOTHING;
       } else if (command != Action.NOTHING) { //if a button is clicked
@@ -222,7 +284,7 @@ class GameServer extends Level {
     } else if (key == 'b' || key == 'B') {
       selectAction(Action.BLINK);
     } else if (key == 's' || key == 'S') {
-      controlled_unit.command(null, Action.NOTHING);
+      processCommand(HOST, null, Action.NOTHING);
     }
   }
 

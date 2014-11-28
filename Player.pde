@@ -2,7 +2,9 @@ class Player {
   private String name;
   private color player_color;
   private String ip;
-
+  private boolean dead = false;
+  private int score = 0;
+  
   Player(String name, color player_color, String ip) {
     this.name = name;
     this.player_color = player_color;
@@ -24,6 +26,18 @@ class Player {
 
   public String getIp() {
     return ip;
+  }
+  
+  public void killed() {
+    dead = true;
+  }
+  
+  public void respawn() {
+    dead = false;
+  }
+  
+  public boolean isDead() {
+    return dead;
   }
 }
 

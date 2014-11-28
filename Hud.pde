@@ -1,8 +1,12 @@
+import java.util.*;
+
 class Hud {
   private Unit controlled_unit;
   private long duration = 0;
   private SkillButton fb_button, blink_button;
-
+  private boolean timer = false;
+  private List<Player> players;
+  
   Hud(Unit controlled_unit) {
     this.controlled_unit = controlled_unit;
     fb_button = new SkillButton(width/2-SkillButton.SIZE*2, height-SkillButton.SIZE, Fireball.COOLDOWN, fireball_icon);
@@ -23,8 +27,17 @@ class Hud {
     return str;
   }
 
+  public void startTimer() {
+    timer = true;
+  }
+  
+  public void stopTimer() {
+    timer = false;
+  }
+  
   public void update() {
-    duration++;
+    if (timer) 
+      duration++;
   }
 
   public void update(Unit unit, long duration) {
