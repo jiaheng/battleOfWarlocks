@@ -10,13 +10,13 @@ class GameClient extends Level {
   private Unit controlled_unit = null;
   private Action issue_cmd = Action.NOTHING;
   private ArrayList<Player> players = new ArrayList<Player>();
-  
+
   private String msg = "";
   private boolean pregame = true;
   private int pregame_timer = 300;
   private boolean endgame = false;
   private Player current_player;
-  
+
   GameClient(Client client) {
     this.client = client;
   }
@@ -74,7 +74,7 @@ class GameClient extends Level {
       closeConnection();
       loadLevel(new Menu());
     }
-    hud = new Hud(controlled_unit, players, current_player);
+    hud = new Hud(controlled_unit, players);
   }
 
   private boolean processPacket() {
@@ -101,20 +101,16 @@ class GameClient extends Level {
       pregame = packet.isPregame();
       pregame_timer = packet.getPregameTimer();
       world = new World(packet.getRingRadius());
-      players.clear();
       gameObjs.clear();
       for (Object obj : list) {
         if (obj instanceof PlayerData) {
           PlayerData player_data = (PlayerData) obj;
-          Player player = new Player(player_data);
           Unit unit = new Unit(player_data, world);
           if (player_name.equals(unit.getName())) {
             this.controlled_unit = unit;
-            this.current_player = player;
-            hud.update(unit, current_player, packet.getDuration());
+            hud.update(unit, packet.getDuration());
           }
           gameObjs.add(unit);
-          players.add(player);
         } else if (obj instanceof FireballData) {
           FireballData fireball_data = (FireballData) obj;
           Fireball fireball =  new Fireball(fireball_data);
@@ -122,6 +118,20 @@ class GameClient extends Level {
         }
       }
       return true;
+    } else if (packet.getType() == PacketType.PLAYER) {
+      ArrayList list = packet.getData();
+      players.clear();
+      for (Object obj : list) {
+        if (obj instanceof PlayerData) {
+          PlayerData player_data = (PlayerData) obj;
+          Player player = new Player(player_data);
+          if (player_name.equals(player.getName())) {
+            this.current_player = player;
+          }
+          players.add(player);
+        }
+      }
+      return false;
     } else {
       return false;
     }

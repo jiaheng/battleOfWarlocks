@@ -2,23 +2,22 @@ import java.util.*;
 
 class Hud {
   private Unit controlled_unit;
-  private Player current_player;
+  private Player current_player; // unused (for now)
   private long duration = 0;
   private SkillButton fb_button, blink_button;
   private boolean timer = false;
   private List<Player> players;
   private boolean gameover = false;
 
-  Hud(Unit controlled_unit, List<Player> players, Player current_player) {
+  Hud(Unit controlled_unit, List<Player> players) {
     this.players = players;
     this.controlled_unit = controlled_unit;
-    this.current_player = current_player;
     fb_button = new SkillButton(width/2-SkillButton.SIZE*2, height-SkillButton.SIZE, Fireball.COOLDOWN, fireball_icon);
     blink_button = new SkillButton(width/2+SkillButton.SIZE, height-SkillButton.SIZE, Blink.COOLDOWN, blink_icon);
   }
 
-  Hud(Unit controlled_unit, long duration, List<Player> players, Player current_player) {
-    this(controlled_unit, players, current_player);
+  Hud(Unit controlled_unit, long duration, List<Player> players) {
+    this(controlled_unit, players);
     this.duration = duration;
   }
 
@@ -44,9 +43,8 @@ class Hud {
       duration++;
   }
 
-  public void update(Unit unit, Player current_player, long duration) {
+  public void update(Unit unit, long duration) {
     this.controlled_unit = unit;
-    this.current_player = current_player;
     this.duration = duration;
   }
 

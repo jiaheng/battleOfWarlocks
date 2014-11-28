@@ -16,7 +16,8 @@ class GameServer extends Level {
   private Unit controlled_unit;  
   private Hud hud;
   private Action issue_cmd = Action.NOTHING;
-
+  
+  private int score_timer = 0;
   private int packet_timer = 0;
   private String msg = "";
   private boolean pregame = true;
@@ -24,7 +25,7 @@ class GameServer extends Level {
   private boolean endgame = false;
   private int score_point = 1;
   private Player current_player;
-
+  
   GameServer(Server server, ArrayList<Player> players) {
     this.server = server;
     for (Player player : players) {
@@ -50,7 +51,7 @@ class GameServer extends Level {
         break;
       }
     }
-    hud = new Hud(controlled_unit, players, current_player); 
+    hud = new Hud(controlled_unit, players); 
   }
 
   private void createUnit() {
@@ -102,6 +103,27 @@ class GameServer extends Level {
       } else if (packet.getType() == PacketType.COMMAND) {
         processCommand(packet, client.ip());
       }
+    }
+  }
+
+  private void sendScore() {
+    ArrayList list = new ArrayList();
+    for (Player player : players) {
+      PlayerData player_data = new PlayerData(player);
+      list.add(player_data);
+    }
+    Packet packet = new Packet(PacketType.PLAYER, list);
+    byte[] data = null;
+    try {
+      data = ps.serialize(packet);
+      server.write(interesting);
+      server.write(data);
+      server.write(interesting);
+      //println(data.length);
+    } 
+    catch (IOException e) {
+      System.err.println("Caught IOException: " + e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -203,10 +225,16 @@ class GameServer extends Level {
 
     if (packet_timer > 0) {
       packet_timer--;
-      return;
     } else {
       sendState();
       packet_timer = 3;
+    }
+    
+    if (score_timer > 0) {
+      score_timer--;
+    } else {
+      sendScore();
+      score_timer = 30;
     }
   }
 
