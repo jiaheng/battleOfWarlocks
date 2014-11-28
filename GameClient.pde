@@ -17,6 +17,8 @@ class GameClient extends Level {
   private boolean endgame = false;
   private Player current_player;
 
+  private Button exit_button = null;
+
   GameClient(Client client) {
     this.client = client;
   }
@@ -99,8 +101,13 @@ class GameClient extends Level {
     if (packet.getType() == PacketType.STATE) {
       ArrayList list = packet.getData();
       pregame = packet.isPregame();
+      endgame = packet.isGameOver();
       pregame_timer = packet.getPregameTimer();
       world = new World(packet.getRingRadius());
+      if (endgame) {
+        hud.endGame();
+        exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
+      }
       gameObjs.clear();
       for (Object obj : list) {
         if (obj instanceof PlayerData) {
@@ -139,7 +146,7 @@ class GameClient extends Level {
 
   public void draw() {    
     byte[] data;
-    if (!processPacket()) {
+    if (!processPacket() && !endgame) {
       // update obj
       for (GameObject obj : gameObjs) {
         obj.update();
@@ -169,15 +176,20 @@ class GameClient extends Level {
     removeFromWorld.clear();
 
     hud.draw();
+    if (endgame) {
+      exit_button.draw();
+    }
   }
 
   public void disconnectEvent(Client client) {
     println("server disconnected");
     closeConnection();
+    if (endgame) return;
     loadLevel(new Menu());
   }
 
   private void sendCommand(PVector target, Action action) {
+    if (endgame) return; // do not send command if game is ended
     Packet packet = new Packet(PacketType.COMMAND, player_name, target.x, target.y, action);
     byte[] data = null;
     try {
@@ -200,6 +212,13 @@ class GameClient extends Level {
   }
 
   public void mouseReleased() {
+    if (exit_button != null) {
+      exit_button.unhighlight();
+      if (exit_button.overButton()) {
+        closeConnection();
+        loadLevel(new Menu());
+      }
+    }
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
       if (issue_cmd == Action.NOTHING) { // move command if no cmd issued
@@ -246,7 +265,9 @@ class GameClient extends Level {
 
   private void closeConnection() {
     if (client != null) {
-      client.stop();
+      Client this_client = client;
+      client = null;
+      this_client.stop();
     }
   }
 
@@ -255,9 +276,21 @@ class GameClient extends Level {
   }
 
   public void mousePressed() {
+    if (exit_button == null) return;
+    if (exit_button.overButton()) {
+      exit_button.highlight();
+    }
   }
+
   public void mouseDragged() {
+    if (exit_button == null) return;
+    if (exit_button.overButton()) {
+      exit_button.highlight();
+    } else {
+      exit_button.unhighlight();
+    }
   }
+
   public void keyPressed() {
   }
 }

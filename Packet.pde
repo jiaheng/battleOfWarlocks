@@ -12,11 +12,13 @@ static class Packet implements Serializable {
   private Action action;
   private boolean pregame;
   private int pregame_timer;
+  private boolean endgame;
 
-  Packet(PacketType type, float ring_radius, boolean pregame, int pregame_timer, long duration, ArrayList data) {
+  Packet(PacketType type, float ring_radius, boolean pregame, boolean endgame, int pregame_timer, long duration, ArrayList data) {
     this.type = type;
     this.ring_radius = ring_radius;
     this.pregame = pregame;
+    this.endgame = endgame;
     this.pregame_timer = pregame_timer;
     this.duration = duration;
     this.data = data;
@@ -82,6 +84,10 @@ static class Packet implements Serializable {
 
   public int getPregameTimer() {
     return pregame_timer;
+  }
+
+  public boolean isGameOver() {
+    return endgame;
   }
 }
 

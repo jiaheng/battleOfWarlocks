@@ -76,12 +76,12 @@ class Menu extends Level {
   }
 
   public void keyPressed() {
-    if (key == BACKSPACE ) {
+    if (key == BACKSPACE) {
       // remove last character
       if (player_name.length() > 0) {
         player_name = player_name.substring(0, player_name.length()-1);
       }
-    } else {
+    } else if (key != CODED && key != TAB && key != ENTER && key != RETURN && key != ESC && key != DELETE) {
       // Otherwise, concatenate the String
       // Each character typed by the user is added to the end of the String variable.
       player_name += key;

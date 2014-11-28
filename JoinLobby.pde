@@ -116,10 +116,10 @@ class JoinLobby extends Level {
       if (ip.length() > 0) {
         ip = ip.substring(0, ip.length()-1);
       }
-    } else if (key == ENTER) {
+    } else if (key == ENTER || key == RETURN) {
       // join
       connect();
-    } else {
+    } else  if (key != CODED && key != TAB && key != ESC && key != DELETE) {
       // Otherwise, concatenate the String
       // Each character typed by the user is added to the end of the String variable.
       ip = ip + key;

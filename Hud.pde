@@ -67,11 +67,12 @@ class Hud {
     fb_button.draw();
     blink_button.update(controlled_unit.blink_cooldown);
     blink_button.draw();
-    //if (!gameover) {
+    Collections.sort(players);
+    if (!gameover) {
       showScore();
-    /*} else {
+    } else {
       showFinalScore();
-    }*/
+    }
   }
 
   public void showScore() {

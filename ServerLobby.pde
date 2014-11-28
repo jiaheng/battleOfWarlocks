@@ -65,6 +65,7 @@ class ServerLobby extends Level {
     Player player = new Player(name, unit_color, ip);
     players.add(player);
     total_player++;
+    msg = "";
     return true;
   }
 
@@ -227,8 +228,9 @@ class ServerLobby extends Level {
       case START:
         if (total_player<2) {
           msg = "Not enough player\nneed at least 2 players to play the game";
+        } else {
+          startGame();
         }
-        startGame();
         return;
       case BACK:
         closeConnection();

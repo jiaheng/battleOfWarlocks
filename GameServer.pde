@@ -16,7 +16,7 @@ class GameServer extends Level {
   private Unit controlled_unit;  
   private Hud hud;
   private Action issue_cmd = Action.NOTHING;
-  
+
   private int score_timer = 0;
   private int packet_timer = 0;
   private String msg = "";
@@ -25,7 +25,9 @@ class GameServer extends Level {
   private boolean endgame = false;
   private int score_point = 1;
   private Player current_player;
-  
+
+  private Button exit_button = null;
+
   GameServer(Server server, ArrayList<Player> players) {
     this.server = server;
     for (Player player : players) {
@@ -51,7 +53,7 @@ class GameServer extends Level {
         break;
       }
     }
-    hud = new Hud(controlled_unit, players); 
+    hud = new Hud(controlled_unit, players);
   }
 
   private void createUnit() {
@@ -140,7 +142,7 @@ class GameServer extends Level {
         list.add(fireball_data);
       }
     }
-    Packet packet = new Packet(PacketType.STATE, world.getRadius(), pregame, pregame_timer, hud.getDuration(), list);
+    Packet packet = new Packet(PacketType.STATE, world.getRadius(), pregame, endgame, pregame_timer, hud.getDuration(), list);
     byte[] data = null;
     try {
       data = ps.serialize(packet);
@@ -158,7 +160,7 @@ class GameServer extends Level {
   public void draw() {
     receiveCommand();
 
-    world.update();
+    if (!endgame) world.update();
     world.draw();
 
     if (pregame) {
@@ -172,8 +174,10 @@ class GameServer extends Level {
       }
     }
 
-    for (GameObject obj : gameObjs) {
-      obj.update();
+    if (!endgame) { // do not update if the game is ended
+      for (GameObject obj : gameObjs) {
+        obj.update();
+      }
     }
 
     for (GameObject obj : gameObjs) {
@@ -211,17 +215,24 @@ class GameServer extends Level {
 
     // check if player is still alive
     int num_alive = getPlayerAlive();
-    if (num_alive <= 1) {
+    if (num_alive <= 1 && !endgame) {
+      // add point to player alive
+      for (Player player : players) {
+        if (!player.isDead()) {
+          player.addScore(score_point);
+        }
+      }
       endgame = true;
-    }
-
-    if (endgame) {
-      println("game should end");
       hud.endGame();
+      exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
     }
 
     hud.update();
     hud.draw();
+
+    if (endgame) {
+      exit_button.draw();
+    }
 
     if (packet_timer > 0) {
       packet_timer--;
@@ -229,7 +240,7 @@ class GameServer extends Level {
       sendState();
       packet_timer = 3;
     }
-    
+
     if (score_timer > 0) {
       score_timer--;
     } else {
@@ -247,6 +258,7 @@ class GameServer extends Level {
   }
 
   private void removePlayer(String ip) {
+    if (endgame) return;
     Unit unit = units.remove(ip);
     if (unit == null) return; //exit if the player doesnt exist
     for (Player player : players) {
@@ -294,6 +306,13 @@ class GameServer extends Level {
   }
 
   public void mouseReleased() {
+    if (exit_button != null) {
+      exit_button.unhighlight();
+      if (exit_button.overButton()) {
+        closeConnection();
+        loadLevel(new Menu());
+      }
+    }
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
       if (issue_cmd == Action.NOTHING) { // move command if no cmd issued
@@ -341,15 +360,32 @@ class GameServer extends Level {
   }
 
   public void stop() {
+    closeConnection();
+  }
+
+  private void closeConnection() {
     if (server != null) {
       server.stop();
+      server = null;
+    }
+  }
+
+  public void mousePressed() {
+    if (exit_button == null) return;
+    if (exit_button.overButton()) {
+      exit_button.highlight();
     }
   }
 
   public void mouseDragged() {
+    if (exit_button == null) return;
+    if (exit_button.overButton()) {
+      exit_button.highlight();
+    } else {
+      exit_button.unhighlight();
+    }
   }
-  public void mousePressed() {
-  }
+
   public void keyPressed() {
   }
 }
