@@ -5,7 +5,7 @@ class World {
   private static final int RING_INTERVAL = 10;
   private static final float RING_REDUCE_INC = 5f;
 
-  public final float LAVA_DMG = 10f; // 10 dmg per second 
+  public final float LAVA_DMG = 12f; // 10 dmg per second 
 
   private final int start_time;
 

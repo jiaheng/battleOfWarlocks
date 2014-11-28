@@ -22,6 +22,8 @@ class GameServer extends Level {
   private boolean pregame = true;
   private int pregame_timer = 300;
   private boolean endgame = false;
+  private int score_point = 1;
+  private Player current_player;
 
   GameServer(Server server, ArrayList<Player> players) {
     this.server = server;
@@ -42,7 +44,13 @@ class GameServer extends Level {
       exit();
       return;
     }
-    hud = new Hud(controlled_unit);
+    for (Player player : players) {
+      if (player.getName().equals(player_name)) {
+        current_player = player;
+        break;
+      }
+    }
+    hud = new Hud(controlled_unit, players, current_player); 
   }
 
   private void createUnit() {
@@ -133,6 +141,7 @@ class GameServer extends Level {
 
     if (pregame) {
       fill(0);
+      textSize(24);
       text("Game will start in " + (pregame_timer/60+1), width/2, height/2);
       pregame_timer--;
       if (pregame_timer < 0) {
@@ -155,6 +164,7 @@ class GameServer extends Level {
     }
     addToWorld.clear();
 
+    boolean player_died = false;
     for (GameObject obj : removeFromWorld) {
       if (obj instanceof Unit) {
         Unit unit = (Unit) obj;
@@ -162,19 +172,20 @@ class GameServer extends Level {
         for (Player player : players) {
           if (player.getName().equals(name)) {
             player.killed();
+            player.addScore(score_point);
+            player_died = true;
           }
         }
       }
       gameObjs.remove(obj);
     }
     removeFromWorld.clear();
+    if (player_died) score_point += 1;
 
     for (GameObject obj : remove_from_game) {
       gameObjs.remove(obj);
     }
     remove_from_game.clear();
-
-    //update score
 
     // check if player is still alive
     int num_alive = getPlayerAlive();
@@ -184,6 +195,7 @@ class GameServer extends Level {
 
     if (endgame) {
       println("game should end");
+      hud.endGame();
     }
 
     hud.update();

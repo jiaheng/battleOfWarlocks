@@ -7,6 +7,7 @@ static class PlayerData implements Serializable {
   public float x, y, orientation, current_hp, target_x, target_y, vel_x, vel_y;
   public int unit_color, fireball_cooldown, blink_cooldown;
   public String name;
+  public int score;
 
   PlayerData(float x, float y, float vel_x, float vel_y, float orientation, String name, int colour, int fireball_cooldown, int blink_cooldown, float current_hp, float target_x, float target_y, Action action) {
     this.x = x;
@@ -24,9 +25,10 @@ static class PlayerData implements Serializable {
     this.action = action;
   }
 
-  PlayerData(String name, int unit_color) {
+  PlayerData(String name, int unit_color, int score) {
     this.name = name;
     this.unit_color = unit_color;
+    this.score = score;
   }
 
   PlayerData(Unit unit) {
@@ -37,7 +39,7 @@ static class PlayerData implements Serializable {
   }
 
   PlayerData(Player player) {
-    this(player.getName(), player.getColor());
+    this(player.getName(), player.getColor(), player.getScore());
   }
 }
 

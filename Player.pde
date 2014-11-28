@@ -14,6 +14,7 @@ class Player {
   Player(PlayerData player) {
     this.name = player.name;
     this.player_color = player.unit_color;
+    this.score = player.score;
   }
 
   public String getName() {
@@ -38,6 +39,14 @@ class Player {
   
   public boolean isDead() {
     return dead;
+  }
+  
+  public void addScore(int point) {
+    score += point;
+  }
+  
+  public int getScore() {
+    return score;
   }
 }
 

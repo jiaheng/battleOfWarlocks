@@ -16,7 +16,7 @@ class Game extends Level {
     gameObjs.add(u1);
     gameObjs.add(u2);
     controlled_unit = u1;
-    hud = new Hud(controlled_unit);
+    hud = new Hud(controlled_unit, null, null);
   }
 
   public void draw() {

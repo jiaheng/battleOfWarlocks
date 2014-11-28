@@ -2,19 +2,23 @@ import java.util.*;
 
 class Hud {
   private Unit controlled_unit;
+  private Player current_player;
   private long duration = 0;
   private SkillButton fb_button, blink_button;
   private boolean timer = false;
   private List<Player> players;
-  
-  Hud(Unit controlled_unit) {
+  private boolean gameover = false;
+
+  Hud(Unit controlled_unit, List<Player> players, Player current_player) {
+    this.players = players;
     this.controlled_unit = controlled_unit;
+    this.current_player = current_player;
     fb_button = new SkillButton(width/2-SkillButton.SIZE*2, height-SkillButton.SIZE, Fireball.COOLDOWN, fireball_icon);
     blink_button = new SkillButton(width/2+SkillButton.SIZE, height-SkillButton.SIZE, Blink.COOLDOWN, blink_icon);
   }
 
-  Hud(Unit controlled_unit, long duration) {
-    this(controlled_unit);
+  Hud(Unit controlled_unit, long duration, List<Player> players, Player current_player) {
+    this(controlled_unit, players, current_player);
     this.duration = duration;
   }
 
@@ -30,18 +34,19 @@ class Hud {
   public void startTimer() {
     timer = true;
   }
-  
+
   public void stopTimer() {
     timer = false;
   }
-  
+
   public void update() {
     if (timer) 
       duration++;
   }
 
-  public void update(Unit unit, long duration) {
+  public void update(Unit unit, Player current_player, long duration) {
     this.controlled_unit = unit;
+    this.current_player = current_player;
     this.duration = duration;
   }
 
@@ -64,10 +69,68 @@ class Hud {
     fb_button.draw();
     blink_button.update(controlled_unit.blink_cooldown);
     blink_button.draw();
+    //if (!gameover) {
+      showScore();
+    /*} else {
+      showFinalScore();
+    }*/
+  }
+
+  public void showScore() {
+    float x = width - 180;
+    float x2 = x + 150;
+    float y = 20;
+    int board_w = 200;
+    int board_l = 250;
+    fill(0, 150);
+    rect(width-board_w, 0, board_w, board_l);
+    fill(255);
+    textSize(18);
+    text("Scoreboard", width-board_w/2, y);
+    y += 24;
+    textSize(15);
+    textAlign(LEFT);
+    for (Player player : players) {
+      fill(player.getColor());
+      text(player.getName(), x, y);
+      text(player.getScore(), x2, y);
+      y += 22;
+    }
+    textAlign(CENTER);
+  }
+
+  public void showFinalScore() {
+    int board_w = 500;
+    int board_l = 700;
+    float x = width/2 - 200;
+    float x2 = x + 400;
+    float y = (height - board_l)/2 + 50;
+    fill(0, 190);
+    rect((width - board_w)/2, (height - board_l)/2, board_w, board_l);
+    textSize(30);
+    fill(255);
+    text("Game Over", width/2, y);
+    y += 50;
+    textSize(24);
+    textAlign(LEFT);
+    for (Player player : players) {
+      fill(player.getColor());
+      text(player.getName(), x, y);
+      text(player.getScore(), x2, y);
+      y += 35;
+    }
+    textAlign(CENTER);
   }
 
   public long getDuration() {
     return duration;
+  }
+
+  public void endGame() {
+    stopTimer();
+    fb_button.disable();
+    blink_button.disable();
+    gameover = true;
   }
 }
 

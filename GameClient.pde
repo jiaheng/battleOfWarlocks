@@ -9,12 +9,13 @@ class GameClient extends Level {
   private World world;
   private Unit controlled_unit = null;
   private Action issue_cmd = Action.NOTHING;
-  private ArrayList<Unit> units = new ArrayList<Unit>();
+  private ArrayList<Player> players = new ArrayList<Player>();
   
   private String msg = "";
   private boolean pregame = true;
   private int pregame_timer = 300;
   private boolean endgame = false;
+  private Player current_player;
   
   GameClient(Client client) {
     this.client = client;
@@ -37,12 +38,14 @@ class GameClient extends Level {
             gameObjs.clear();
             for (Object obj : list) {
               if (obj instanceof PlayerData) {
-                PlayerData player = (PlayerData) obj;
-                Unit unit = new Unit(player, world);
+                PlayerData player_data = (PlayerData) obj;
+                Player player = new Player(player_data);
+                Unit unit = new Unit(player_data, world);
                 if (player_name.equals(unit.getName())) {
+                  this.current_player = player;
                   this.controlled_unit = unit;
                 }
-                units.add(unit);
+                players.add(player);
                 gameObjs.add(unit);
               } else if (obj instanceof FireballData) {
                 FireballData fireball_data = (FireballData) obj;
@@ -71,7 +74,7 @@ class GameClient extends Level {
       closeConnection();
       loadLevel(new Menu());
     }
-    hud = new Hud(controlled_unit);
+    hud = new Hud(controlled_unit, players, current_player);
   }
 
   private boolean processPacket() {
@@ -98,18 +101,20 @@ class GameClient extends Level {
       pregame = packet.isPregame();
       pregame_timer = packet.getPregameTimer();
       world = new World(packet.getRingRadius());
-      units.clear();
+      players.clear();
       gameObjs.clear();
       for (Object obj : list) {
         if (obj instanceof PlayerData) {
-          PlayerData player = (PlayerData) obj;
-          Unit unit = new Unit(player, world);
+          PlayerData player_data = (PlayerData) obj;
+          Player player = new Player(player_data);
+          Unit unit = new Unit(player_data, world);
           if (player_name.equals(unit.getName())) {
             this.controlled_unit = unit;
-            hud.update(unit, packet.getDuration());
+            this.current_player = player;
+            hud.update(unit, current_player, packet.getDuration());
           }
           gameObjs.add(unit);
-          units.add(unit);
+          players.add(player);
         } else if (obj instanceof FireballData) {
           FireballData fireball_data = (FireballData) obj;
           Fireball fireball =  new Fireball(fireball_data);
@@ -139,6 +144,7 @@ class GameClient extends Level {
 
     if (pregame && pregame_timer > 0) {
       fill(0);
+      textSize(24);
       text("Game will start in " + (pregame_timer/60 + 1), width/2, height/2);
       pregame_timer--;
     }
