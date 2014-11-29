@@ -11,13 +11,14 @@ class GameClient extends Level {
   private Action issue_cmd = Action.NOTHING;
   private ArrayList<Player> players = new ArrayList<Player>();
 
-  private String msg = "";
   private boolean pregame = true;
   private int pregame_timer = 300;
   private boolean endgame = false;
   private Player current_player;
 
   private Button exit_button = null;
+  private boolean endround = false;
+  private int endround_timer = 300;
 
   GameClient(Client client) {
     this.client = client;
@@ -80,6 +81,7 @@ class GameClient extends Level {
   }
 
   private boolean processPacket() {
+    if (client == null) return false;
     byte[] data = client.readBytesUntil(interesting);
     if (data == null) return false;
     if (data.length < 512) return false;
@@ -103,10 +105,16 @@ class GameClient extends Level {
       pregame = packet.isPregame();
       endgame = packet.isGameOver();
       pregame_timer = packet.getPregameTimer();
+      endround = packet.isRoundOver();
+      endround_timer = packet.getEndroundTimer();
       world = new World(packet.getRingRadius());
       if (endgame) {
         hud.endGame();
         exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
+      } else if (pregame || endround) {
+        hud.disable();
+      } else {
+        hud.enable();
       }
       gameObjs.clear();
       for (Object obj : list) {
@@ -176,6 +184,14 @@ class GameClient extends Level {
     removeFromWorld.clear();
 
     hud.draw();
+
+    if (endround) {
+      fill(0);
+      textSize(24);
+      text("Round end, next round will start in " + (endround_timer/60+1), width/2, height/2);
+      endround_timer--;
+    }
+
     if (endgame) {
       exit_button.draw();
     }

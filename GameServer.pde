@@ -4,6 +4,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class GameServer extends Level {
+  private final int TOTAL_ROUND = 3;
+
   private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
   private CopyOnWriteArrayList<GameObject> remove_from_game = new CopyOnWriteArrayList<GameObject>();
   private ConcurrentHashMap<String, Unit> units = new ConcurrentHashMap<String, Unit>(10);
@@ -19,7 +21,6 @@ class GameServer extends Level {
 
   private int score_timer = 0;
   private int packet_timer = 0;
-  private String msg = "";
   private boolean pregame = true;
   private int pregame_timer = 300;
   private boolean endgame = false;
@@ -27,6 +28,9 @@ class GameServer extends Level {
   private Player current_player;
 
   private Button exit_button = null;
+  private boolean endround = false;
+  private int endround_timer = 300;
+  private int round = 1;
 
   GameServer(Server server, ArrayList<Player> players) {
     this.server = server;
@@ -37,8 +41,17 @@ class GameServer extends Level {
   }
 
   public void begin() {
+    endround = false;
+    endround_timer = 300;
+    pregame = true;
+    pregame_timer = 300;
     init_minute = minute();
     init_second = second();
+    units.clear();
+    remove_from_game.clear();
+    gameObjs.clear();
+    addToWorld.clear();
+    removeFromWorld.clear();
     world = new World(init_second);
 
     createUnit();
@@ -62,6 +75,7 @@ class GameServer extends Level {
     PVector spawn_vector = new PVector(-1, 0);
     spawn_vector.mult(250);
     for (Player player : players) {
+      player.respawn();
       PVector spawn_point = new PVector(width/2, height/2);
       spawn_point.add(spawn_vector);
       color unit_color = color(player.getColor());
@@ -142,7 +156,7 @@ class GameServer extends Level {
         list.add(fireball_data);
       }
     }
-    Packet packet = new Packet(PacketType.STATE, world.getRadius(), pregame, endgame, pregame_timer, hud.getDuration(), list);
+    Packet packet = new Packet(PacketType.STATE, world.getRadius(), pregame, endgame, pregame_timer, endround, endround_timer, hud.getDuration(), list);
     byte[] data = null;
     try {
       data = ps.serialize(packet);
@@ -215,20 +229,28 @@ class GameServer extends Level {
 
     // check if player is still alive
     int num_alive = getPlayerAlive();
-    if (num_alive <= 1 && !endgame) {
+    if (num_alive <= 1 && !endgame && !endround) {
       // add point to player alive
       for (Player player : players) {
         if (!player.isDead()) {
           player.addScore(score_point);
         }
       }
-      endgame = true;
-      hud.endGame();
-      exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
+      endRound();
     }
 
     hud.update();
     hud.draw();
+
+    if (endround) {
+      fill(0);
+      textSize(24);
+      text("Round end, next round will start in " + (endround_timer/60+1), width/2, height/2);
+      endround_timer--;
+      if (endround_timer < 0) {
+        begin();
+      }
+    }
 
     if (endgame) {
       exit_button.draw();
@@ -249,6 +271,17 @@ class GameServer extends Level {
     }
   }
 
+  private void endRound() {
+    if (round < TOTAL_ROUND) {
+      endround = true;
+      round++;
+    } else {
+      endgame = true;
+      hud.endGame();
+      exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
+    }
+  }
+  
   private int getPlayerAlive() {
     int alive = 0;
     for (Player player : players) {
@@ -276,7 +309,7 @@ class GameServer extends Level {
   }
 
   private void processCommand(Packet packet, String ip) {
-    if (pregame || endgame) return; // all unit freeze before match start
+    if (pregame || endgame || endround) return; // all unit freeze before match start
     String name = packet.getName();
     PVector target = new PVector(packet.getX(), packet.getY());
     Action action = packet.getAction();
@@ -290,7 +323,7 @@ class GameServer extends Level {
   }
 
   private void processCommand(String ip, PVector target, Action action) {
-    if (pregame || endgame) return; // all unit freeze before match start
+    if (pregame || endgame || endround) return; // all unit freeze before match start
     Unit unit = units.get(ip);
     if (unit != null) {
       unit.command(target, action);

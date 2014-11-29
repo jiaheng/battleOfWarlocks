@@ -131,5 +131,17 @@ class Hud {
     blink_button.disable();
     gameover = true;
   }
+  
+  public void enable() {
+    startTimer();
+    fb_button.enable();
+    blink_button.enable();
+  }
+  
+  public void disable() {
+    stopTimer();
+    fb_button.disable();
+    blink_button.disable();
+  }
 }
 
