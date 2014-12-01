@@ -141,6 +141,7 @@ class Unit extends GameObject {
       new_position.add(position);
       position = new_position;
     }
+    play(sfx_blink);
     action = Action.NOTHING;
     blink_cooldown = Blink.COOLDOWN;
   }

@@ -115,6 +115,7 @@ class JoinLobby extends Level {
       // remove last character
       if (ip.length() > 0) {
         ip = ip.substring(0, ip.length()-1);
+        play(sfx_typing);
       }
     } else if (key == ENTER || key == RETURN) {
       // join
@@ -123,6 +124,7 @@ class JoinLobby extends Level {
       // Otherwise, concatenate the String
       // Each character typed by the user is added to the end of the String variable.
       ip = ip + key;
+      play(sfx_typing);
     }
   }
 

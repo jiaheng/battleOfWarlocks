@@ -4,8 +4,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class GameServer extends Level {
-  private final int TOTAL_ROUND = 3;
-
   private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
   private CopyOnWriteArrayList<GameObject> remove_from_game = new CopyOnWriteArrayList<GameObject>();
   private ConcurrentHashMap<String, Unit> units = new ConcurrentHashMap<String, Unit>(10);

@@ -44,6 +44,7 @@ class Fireball extends GameObject {
 
   public void collidedWith(GameObject other) {
     current_level.removeFromWorld.add(this);
+    play(sfx_fireball);
   }
 }
 

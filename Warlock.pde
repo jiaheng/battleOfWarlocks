@@ -1,6 +1,7 @@
 import processing.net.*;
+import ddf.minim.*;
 
-static final String PATH = "/home/jiaheng/Desktop/VG-CW3/code/Warlock/";
+static final int TOTAL_ROUND = 3;
 static Level current_level;
 static final int PORT_NUM = 52042;
 static final String HOST = "host";
@@ -10,9 +11,21 @@ final PApplet parent = this;
 PGraphics bg;
 PImage floor_img, fireball_icon, fireball_img, blink_icon;
 String player_name = "player name";
+AudioPlayer sfx_fireball, sfx_typing, sfx_blink;
+
+void play(AudioPlayer sfx) {
+  sfx.pause();
+  sfx.rewind();
+  sfx.play();
+}
 
 void setup() {
   size(800, 800);
+
+  Minim minim = new Minim(this);
+  sfx_fireball = minim.loadFile("fireball.mp3");
+  sfx_typing = minim.loadFile("typing.wav");
+  sfx_blink = minim.loadFile("blink.mp3");
 
   blink_icon = loadImage("blink_icon.png");
   fireball_icon = loadImage("fireball_icon.png");
