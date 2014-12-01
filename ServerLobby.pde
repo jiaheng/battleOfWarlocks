@@ -1,4 +1,5 @@
 import processing.net.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class ServerLobby extends Level {
 
@@ -15,7 +16,7 @@ class ServerLobby extends Level {
   private int WIDTH = 500;
   private int LENGTH = 600;
   private ArrayList<Button> buttons = new ArrayList<Button>();
-  private ArrayList<Player> players = new ArrayList<Player>();
+  private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
   private PacketSerializer ps = new PacketSerializer();  
   private Server server;
   private int timer = 0;

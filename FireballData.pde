@@ -1,6 +1,7 @@
 import java.io.Serializable;
 
 static class FireballData implements Serializable {
+  // FiraballData used to send over the network
   private static final long serialVersionUID = 7614852198430071380L;
 
   public final float x, y, orientation;

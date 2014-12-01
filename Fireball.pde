@@ -21,17 +21,17 @@ class Fireball extends GameObject {
   }
 
   public void draw() {
-    fill(255, 102, 0);
-    ellipse(position.x, position.y, RADIUS*2, RADIUS*2);
+    //fill(255, 102, 0);
+    //ellipse(position.x, position.y, RADIUS*2, RADIUS*2); // orange circle as fireball
     translate(position.x, position.y);
-    rotate(orientation+HALF_PI); // fireball image is facing top, need to translate it
+    rotate(orientation+HALF_PI); // fireball image is facing top, need to rotate it
     image(fireball_img, -3-RADIUS, -RADIUS);
     resetMatrix();
   }
 
   public void update() {
     position.add(velocity);
-
+    // fireball will disappear after a period of time
     lifespan--;
     if (lifespan <= 0) {
       current_level.removeFromWorld.add(this);
@@ -43,6 +43,7 @@ class Fireball extends GameObject {
   }
 
   public void collidedWith(GameObject other) {
+    // disapear if collide with game object in the world (another fireball or player)
     current_level.removeFromWorld.add(this);
     play(sfx_fireball);
   }

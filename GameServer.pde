@@ -33,11 +33,9 @@ class GameServer extends Level {
   private int endround_timer = 300;
   private int round = 1;
 
-  GameServer(Server server, ArrayList<Player> players) {
+  GameServer(Server server, CopyOnWriteArrayList<Player> players) {
     this.server = server;
-    for (Player player : players) {
-      this.players.add(player);
-    }
+    this.players = players;
     this.total_player = players.size();
   }
 

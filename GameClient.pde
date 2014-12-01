@@ -30,12 +30,12 @@ class GameClient extends Level {
       retry++;
       byte[] data = client.readBytesUntil(interesting);
       if (data != null) {
-        //if (client.available() > 0) {
         System.arraycopy(data, 0, data, 0, data.length - 1);
         Packet packet = null;
         try {
           packet = ps.deserialize(data);
           if (packet.getType() == PacketType.STATE) {
+            // create all object for the game
             ArrayList list = packet.getData();
             world = new World(packet.getRingRadius());
             gameObjs.clear();
@@ -59,21 +59,19 @@ class GameClient extends Level {
           }
         } 
         catch (IOException e) {
-          //println("problem reading packet");
           //System.err.println("Caught IOException: " + e.getMessage());
           //e.printStackTrace();
         } 
         catch (ClassNotFoundException e) {
           System.err.println("Caught ClassNotFoundException: " + e.getMessage());
           //e.printStackTrace();
-          //exit();
-          return;
         }
       }
     } 
     while (controlled_unit == null || retry < 100);
-    if (controlled_unit == null) {
-      println("failed to get my player unit");
+    if (controlled_unit == null && retry >= 100) {
+      // unable to get the disired packet from server after 100 retry
+      println("failed to receive data from server");
       closeConnection();
       loadLevel(new Menu());
     }
@@ -81,6 +79,9 @@ class GameClient extends Level {
   }
 
   private boolean processPacket() {
+    // try to read data from buffer and update the game
+    // return true if the packet is received and game objects are updated
+    // else return false
     if (client == null) return false;
     byte[] data = client.readBytesUntil(interesting);
     if (data == null) return false;
@@ -101,6 +102,7 @@ class GameClient extends Level {
       return false;
     }
     if (packet.getType() == PacketType.STATE) {
+      // update the game objects
       ArrayList list = packet.getData();
       pregame = packet.isPregame();
       endgame = packet.isGameOver();
@@ -108,6 +110,7 @@ class GameClient extends Level {
       endround = packet.isRoundOver();
       endround_timer = packet.getEndroundTimer();
       world = new World(packet.getRingRadius());
+
       if (endgame) {
         hud.endGame();
         exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
@@ -116,6 +119,7 @@ class GameClient extends Level {
       } else {
         hud.enable();
       }
+
       gameObjs.clear();
       for (Object obj : list) {
         if (obj instanceof PlayerData) {
@@ -134,6 +138,8 @@ class GameClient extends Level {
       }
       return true;
     } else if (packet.getType() == PacketType.PLAYER) {
+      // update player score
+      // will not return true since the game object is not updated
       ArrayList list = packet.getData();
       players.clear();
       for (Object obj : list) {
@@ -146,16 +152,14 @@ class GameClient extends Level {
           players.add(player);
         }
       }
-      return false;
-    } else {
-      return false;
     }
+    return false; // return false for all other case
   }
 
   public void draw() {    
     byte[] data;
     if (!processPacket() && !endgame) {
-      // update obj
+      // update objs locally if client does not receive data from server or the game is not over
       for (GameObject obj : gameObjs) {
         obj.update();
       }
@@ -167,6 +171,7 @@ class GameClient extends Level {
 
     world.draw();
 
+    // show text during pre game
     if (pregame && pregame_timer > 0) {
       fill(0);
       textSize(24);
@@ -185,6 +190,7 @@ class GameClient extends Level {
 
     hud.draw();
 
+    // show text after a round is over
     if (endround) {
       fill(0);
       textSize(24);
@@ -205,6 +211,7 @@ class GameClient extends Level {
   }
 
   private void sendCommand(PVector target, Action action) {
+    // send packet to server when the player make an action
     if (endgame) return; // do not send command if game is ended
     Packet packet = new Packet(PacketType.COMMAND, player_name, target.x, target.y, action);
     byte[] data = null;
@@ -222,13 +229,14 @@ class GameClient extends Level {
   private void checkCollisions(GameObject other) {
     for (GameObject obj : gameObjs) {
       if (obj != other && obj.collidingWith(other)) {
+        // update the collided object
         obj.collidedWith(other);
       }
     }
   }
 
   public void mouseReleased() {
-    if (exit_button != null) {
+    if (exit_button != null && endgame) {
       exit_button.unhighlight();
       if (exit_button.overButton()) {
         closeConnection();
@@ -244,12 +252,15 @@ class GameClient extends Level {
         cursor(ARROW);
       }
     } else if (mouseButton == LEFT) {
-      Action command = hud.getCommand();
-      if (command == Action.NOTHING && issue_cmd != Action.NOTHING) { //if no button is clicked and there is a command issue
+      Action command = hud.getCommand(); // check if the player clicked on a skill button
+      if (command == Action.NOTHING && issue_cmd != Action.NOTHING) { 
+        //if no skill button is clicked and there is a command issue
         sendCommand(target, issue_cmd);
+        // reset
         cursor(ARROW);
         issue_cmd = Action.NOTHING;
-      } else if (command != Action.NOTHING) { //if a button is clicked
+      } else if (command != Action.NOTHING) { 
+        //if a skill button is clicked
         selectAction(command);
       }
     }
@@ -257,17 +268,23 @@ class GameClient extends Level {
 
   public void keyReleased() {
     if (key == 'f' || key == 'F') {
+      // hotykey for casting teleport
       selectAction(Action.FIREBALL);
     } else if (key == 'm' || key == 'M') {
+      // hotkey for move
       selectAction(Action.MOVE);
     } else if (key == 'b' || key == 'B') {
+      // hotkey for teleport
       selectAction(Action.BLINK);
     } else if (key == 's' || key == 'S') {
+      // stop command
       sendCommand(new PVector(0, 0), issue_cmd);
     }
   }
 
   private void selectAction(Action action) {
+    // remember the command selected
+    // player unable to sellect the command if its in cooldown
     int cooldown = controlled_unit.getCooldown(action);
     if (cooldown == 0) {
       issue_cmd = action;

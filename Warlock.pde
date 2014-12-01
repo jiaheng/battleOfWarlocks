@@ -1,5 +1,4 @@
 import gifAnimation.*;
-
 import processing.net.*;
 import ddf.minim.*;
 
@@ -24,18 +23,21 @@ void play(AudioPlayer sfx) {
 
 void setup() {
   size(800, 800);
-
+  
+  // load sound files
   Minim minim = new Minim(this);
   sfx_fireball = minim.loadFile("fireball.mp3");
   sfx_typing = minim.loadFile("typing.wav");
   sfx_blink = minim.loadFile("blink.mp3");
   
+  // load images
   title = new Gif(this, "title.gif");
   title.play();
   blink_icon = loadImage("blink_icon.png");
   fireball_icon = loadImage("fireball_icon.png");
   fireball_img = loadImage("fireball.png");
   floor_img = loadImage("floor.png");
+  // draw backgraound with lava
   PImage lava_img = loadImage("lava.jpg");
   bg = createGraphics(800, 800, JAVA2D);
   bg.beginDraw();
@@ -45,7 +47,8 @@ void setup() {
     }
   }
   bg.endDraw();
-
+  
+  // start with main menu
   loadLevel(new Menu());
 }
 

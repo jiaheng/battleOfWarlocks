@@ -7,8 +7,9 @@ class Button {
   private color button_color = NORMAL_COLOR;
   private int button_x, button_y, button_len, button_width;
   private String label;
-  private ButtonAction action;
-
+  private ButtonAction action; // action associate with the button
+  
+  // Create button with label
   Button(ButtonAction action, int button_x, int button_y, int button_len, int button_width, String label) {
     this.action = action;
     this.button_x = button_x;
@@ -26,11 +27,13 @@ class Button {
     textAlign(CENTER);
     text(this.label, button_x + button_len/2, button_y+FONT_SIZE/3 + button_width/2);
   }
-
+  
+  // change color of the button when pressed
   public void highlight() {
     button_color = HIGHLIGHT_COLOR;
   }
 
+  // reset color of the button
   public void unhighlight() {
     button_color = NORMAL_COLOR;
   }
@@ -39,6 +42,7 @@ class Button {
     return action;
   }
 
+  // check if the position of mouse is on the button
   public boolean overButton() {
     if (mouseX >= button_x && mouseX <= button_x + button_len && 
       mouseY >= button_y && mouseY <= button_y + button_width) {

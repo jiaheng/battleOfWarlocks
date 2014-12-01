@@ -9,6 +9,7 @@ abstract class GameObject {
   public abstract void collidedWith(GameObject other);
 
   public PVector getVelocity(float orientation, int speed) {
+    // calculate the velocity based on the direction and speed given
     float velX = sin(radians(orientation)) * speed;
     float velY = -cos(radians(orientation)) * speed;
 
@@ -16,6 +17,7 @@ abstract class GameObject {
   }
 
   public float getOrientation(PVector target) {
+    // get orienation of the object if its facing the target location
     float orientation;
     PVector direction = target.get();
     direction.sub(position);
@@ -25,6 +27,7 @@ abstract class GameObject {
   }
 
   public boolean collidingWith(GameObject other) {
+    // check if the object is colliding with other game object
     float distance = PVector.dist(this.position, other.position);
 
     if (distance > getRadius() + other.getRadius())

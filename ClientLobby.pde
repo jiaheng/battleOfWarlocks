@@ -31,11 +31,12 @@ class ClientLobby extends Level {
   private void receiveData() {
     byte[] data = client.readBytesUntil(interesting);
     if (data == null) return;
-    System.arraycopy(data, 0, data, 0, data.length - 1);
+    System.arraycopy(data, 0, data, 0, data.length - 1); // remove the last byte(interesting) of the data
     Packet packet = null;
     try {
       packet = ps.deserialize(data);
       if (packet.getType() == PacketType.LIST) {
+        // if the packet contain a list of player in the lobby
         ArrayList list = packet.getData();
         players.clear();
         for (Object obj : list) {
@@ -46,6 +47,7 @@ class ClientLobby extends Level {
           }
         }
       } else if (packet.getType() == PacketType.START) {
+        // start the game
         loadLevel(new GameClient(client));
       }
     } 
@@ -56,7 +58,6 @@ class ClientLobby extends Level {
     } 
     catch (ClassNotFoundException e) {
       System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-      e.printStackTrace();
       return;
     }
   }
@@ -78,13 +79,12 @@ class ClientLobby extends Level {
     text("Lobby", width/2, y);
     y += 50;
     textSize(20);
+    // list all the players in the lobby
     for (Player player : players) {
       fill(player.getColor());
       text(player.getName(), width/2, y);
       y += 30;
     }
-    textSize(20);
-    // all players
     for (Button button : buttons) {
       button.draw();
     }
@@ -123,6 +123,7 @@ class ClientLobby extends Level {
       ButtonAction action = selected_button.getAction();
       switch(action) {
       case BACK:
+        // back to main menu
         closeConnection();
         loadLevel(new Menu());
       default:
@@ -131,6 +132,7 @@ class ClientLobby extends Level {
       }
     }
   }
+
   public void keyPressed() {
   }
   public void keyReleased() {
