@@ -5,26 +5,28 @@ class Menu extends Level {
   private final int BUTTON_WIDTH = 100;
 
   public void begin() {
-    int button_y = 300;
+    int button_y = 350;
+    int spacing = 30;
     Button button = new Button(ButtonAction.START, width/2-BUTTON_LEN/2, button_y, BUTTON_LEN, BUTTON_WIDTH, "Start Game");
     buttons.add(button);
-    button_y += BUTTON_WIDTH + 25;
+    button_y += BUTTON_WIDTH + spacing;
     button = new Button(ButtonAction.JOIN, width/2-BUTTON_LEN/2, button_y, BUTTON_LEN, BUTTON_WIDTH, "Join Game");
     buttons.add(button);
-    button_y += BUTTON_WIDTH + 25;
-    button = new Button(ButtonAction.TEST, width/2-BUTTON_LEN/2, button_y, BUTTON_LEN, BUTTON_WIDTH, "TEST Game");
-    buttons.add(button);
+    button_y += BUTTON_WIDTH + spacing;
   }
 
   public void draw() {
     background(bg);
+    image(title, (width-716)/2, 50);
     for (Button button : buttons) {
       button.draw();
     }
     fill(0);
-    rect(width/2-500/2, height/2-200, 500, 40);
+    int textarea_length = 500;
+    int y = height/2-150;
+    rect((width-textarea_length)/2, y, textarea_length, 40);
     fill(255);
-    text(player_name, width/2, height/2-170);
+    text(player_name, width/2, y+30);
   }
 
   private Button selectedButton() {
@@ -64,9 +66,6 @@ class Menu extends Level {
         return;
       case JOIN:
         loadLevel(new JoinLobby());
-        return;
-      case TEST:
-        loadLevel(new Game());
         return;
       default:
         println("error!");

@@ -1,3 +1,5 @@
+import gifAnimation.*;
+
 import processing.net.*;
 import ddf.minim.*;
 
@@ -12,6 +14,7 @@ PGraphics bg;
 PImage floor_img, fireball_icon, fireball_img, blink_icon;
 String player_name = "player name";
 AudioPlayer sfx_fireball, sfx_typing, sfx_blink;
+Gif title;
 
 void play(AudioPlayer sfx) {
   sfx.pause();
@@ -26,7 +29,9 @@ void setup() {
   sfx_fireball = minim.loadFile("fireball.mp3");
   sfx_typing = minim.loadFile("typing.wav");
   sfx_blink = minim.loadFile("blink.mp3");
-
+  
+  title = new Gif(this, "title.gif");
+  title.play();
   blink_icon = loadImage("blink_icon.png");
   fireball_icon = loadImage("fireball_icon.png");
   fireball_img = loadImage("fireball.png");
