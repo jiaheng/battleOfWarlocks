@@ -4,7 +4,7 @@ import ddf.minim.*;
 
 static final int TOTAL_ROUND = 3;
 static Level current_level;
-static final int PORT_NUM = 52042;
+static final int PORT_NUM = 50000;
 static final String HOST = "host";
 
 byte interesting = (byte) 127;

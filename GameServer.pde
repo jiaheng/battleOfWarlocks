@@ -40,6 +40,7 @@ class GameServer extends Level {
   }
 
   public void begin() {
+    // initialize the world and units
     endround = false;
     endround_timer = 300;
     pregame = true;
@@ -69,6 +70,7 @@ class GameServer extends Level {
   }
 
   private void createUnit() {
+    // create unit for each player
     float angle = TWO_PI/total_player;
     float orientation = 0;
     PVector spawn_vector = new PVector(-1, 0);
@@ -86,8 +88,8 @@ class GameServer extends Level {
       units.put(ip, unit);
       gameObjs.add(unit);
       spawn_vector.rotate(angle);
-      orientation -= angle;
-      if (orientation > PI) orientation = TWO_PI - orientation;
+      orientation += angle;
+      if (orientation > PI) orientation = orientation - TWO_PI;
     }
   }
 

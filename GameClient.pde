@@ -2,7 +2,6 @@ import processing.net.*;
 import java.util.Arrays;
 
 class GameClient extends Level {
-
   private Client client;
   private PacketSerializer ps = new PacketSerializer();
   private Hud hud;
@@ -25,6 +24,8 @@ class GameClient extends Level {
   }
 
   public void begin() {
+    // get data from server
+    
     int retry = 0;
     do {
       retry++;
