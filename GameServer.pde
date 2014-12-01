@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class GameServer extends Level {
-  private final int PACKET_FREQ = 15;
+  private final int PACKET_FREQ = 3;
   private final int SCORE_FREQ = 30;
   
   private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
