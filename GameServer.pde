@@ -4,6 +4,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class GameServer extends Level {
+  private final int PACKET_FREQ = 15;
+  private final int SCORE_FREQ = 30;
+  
   private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
   private CopyOnWriteArrayList<GameObject> remove_from_game = new CopyOnWriteArrayList<GameObject>();
   private ConcurrentHashMap<String, Unit> units = new ConcurrentHashMap<String, Unit>(10);
@@ -258,14 +261,14 @@ class GameServer extends Level {
       packet_timer--;
     } else {
       sendState();
-      packet_timer = 3;
+      packet_timer = PACKET_FREQ;
     }
 
     if (score_timer > 0) {
       score_timer--;
     } else {
       sendScore();
-      score_timer = 30;
+      score_timer = SCORE_FREQ;
     }
   }
 
