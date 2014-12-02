@@ -1,6 +1,7 @@
 import java.io.Serializable;
 
 static class PlayerData implements Serializable {
+  // PlayerData used to send over the network
   private static final long serialVersionUID = 6128864208430071380L;
 
   public Action action;

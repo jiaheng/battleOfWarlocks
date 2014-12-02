@@ -25,7 +25,6 @@ class GameClient extends Level {
 
   public void begin() {
     // get data from server
-    
     int retry = 0;
     do {
       retry++;

@@ -3,6 +3,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 class ServerLobby extends Level {
 
+  // color used to represent each player
   private color[] color_list = new color[] {
     color(#FF0000), 
     color(#1400FF), 
@@ -43,6 +44,7 @@ class ServerLobby extends Level {
   }
 
   private color getUnusedColor() {
+    // find unused color for representing a player
     for (color c : color_list) {
       boolean unused = true;
       for (Player player : players) {
@@ -57,10 +59,11 @@ class ServerLobby extends Level {
   }
 
   private boolean createPlayer(String name, String ip) {
-    if (total_player >= 8) return false;
+    if (total_player >= 8) return false; // maximum 8 player
     color unit_color = getUnusedColor();
     for (Player player : players) {
       if (player.getName().equals(name))
+        // if player name is used
         return false;
     }
     Player player = new Player(name, unit_color, ip);
@@ -71,9 +74,8 @@ class ServerLobby extends Level {
   }
 
   private void findPlayer() {
-    // Get the next available client
+    // receive data from connected client
     Client client = server.available();
-    // If the client is not null, and says something, display what it said
     if (client !=null && client.available() > 0) {
       byte[] data = client.readBytesUntil(interesting);
       if (data == null) return;
@@ -90,6 +92,7 @@ class ServerLobby extends Level {
             client.write(data);
             client.write(interesting);
           } else {
+            // if failed to create a player
             packet = new Packet(PacketType.REJECT);
             data = ps.serialize(packet);
             client.write(data);
@@ -115,6 +118,7 @@ class ServerLobby extends Level {
   }
 
   private void startGame() {
+    // tell clients to start the games
     Packet packet = new Packet(PacketType.START);
     byte[] data = null;
     try {
@@ -126,10 +130,12 @@ class ServerLobby extends Level {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
     }
+    // load game
     loadLevel(new GameServer(server, players));
   }
 
   private void sendList() {
+    // send list of players in the lobby
     ArrayList list = new ArrayList();
     for (Player player : players) {
       PlayerData data = new PlayerData(player);
@@ -186,6 +192,7 @@ class ServerLobby extends Level {
     for (Button button : buttons) {
       button.draw();
     }
+    // send list of players in the lobby
     if (timer > 0) {
       timer--;
     } else {

@@ -25,6 +25,7 @@ class SkillButton {
     rect(button_x, button_y, SIZE, SIZE);
     image(icon, button_x, button_y);
     if (current_cooldown > 0) {
+      // if the skill is on cooldown, show time remaining
       float percentage = (float)current_cooldown / (float)total_cooldown;
       fill(0, 50);
       rect(button_x, button_y, SIZE, SIZE);
@@ -36,6 +37,7 @@ class SkillButton {
       text(ceil(current_cooldown/60f), button_x+SIZE/2, button_y+9+SIZE/2);
     }
     if (disabled) {
+      // grey out the button if disabled
       fill(0, 75);
       rect(button_x, button_y, SIZE, SIZE);
     }
@@ -54,6 +56,7 @@ class SkillButton {
   }
 
   public boolean overButton() {
+    // check if the mouse is on the button
     if (mouseX >= button_x && mouseX <= button_x+SIZE && 
       mouseY >= button_y && mouseY <= button_y + SIZE) {
       return true;

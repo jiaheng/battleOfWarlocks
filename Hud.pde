@@ -22,6 +22,7 @@ class Hud {
   }
 
   public String getStrDuration() {
+    // get duration in strings
     String str;
     long total_second = (int) (duration / 60f);
     long second = total_second % 60;
@@ -49,6 +50,7 @@ class Hud {
   }
 
   public Action getCommand() {
+    // check whether button is pressed
     if (fb_button.overButton()) {
       return Action.FIREBALL;
     } else if (blink_button.overButton()) {
@@ -59,14 +61,17 @@ class Hud {
   }
 
   public void draw() {
+    // show duration
     fill(255, 255, 255);
     textSize(24);
     textAlign(CENTER);
     text(getStrDuration(), width/2, 30);
+    // show skill buttons
     fb_button.update(controlled_unit.fireball_cooldown);
     fb_button.draw();
     blink_button.update(controlled_unit.blink_cooldown);
     blink_button.draw();
+    // show scoreboard
     Collections.sort(players);
     if (!gameover) {
       showScore();
@@ -76,6 +81,7 @@ class Hud {
   }
 
   public void showScore() {
+    // show scoreboard on top right corner
     float x = width - 180;
     float x2 = x + 150;
     float y = 20;
@@ -99,6 +105,7 @@ class Hud {
   }
 
   public void showFinalScore() {
+    // show the end reuslt
     int board_w = 500;
     int board_l = 700;
     float x = width/2 - 200;
@@ -122,10 +129,12 @@ class Hud {
   }
 
   public long getDuration() {
+    //get duration in seconds
     return duration;
   }
 
   public void endGame() {
+    // disable buttons if game over
     stopTimer();
     fb_button.disable();
     blink_button.disable();

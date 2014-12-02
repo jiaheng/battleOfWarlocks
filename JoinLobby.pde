@@ -1,8 +1,6 @@
 import processing.net.*;
 
 class JoinLobby extends Level {
-
-  // Variable to store text currently being typed
   private String ip = "";
   private String warning = "";
   private boolean connecting = false;
@@ -23,12 +21,12 @@ class JoinLobby extends Level {
 
   public void draw() {
     if (connecting) {
+      // try to get reply from server if connected to server
       serverRead();
     }
     background(bg);
     fill(0);
     textSize(20);
-    // Display everything
     int tf_len = 500; // text field length
     int tf_width = 120; // text field width
     rect(width/2-tf_len/2, height/2-130, tf_len, tf_width);
@@ -52,6 +50,7 @@ class JoinLobby extends Level {
   }
 
   private void connect() {
+    // connecting to server
     warning = "";
     retry = 0;
     client = new Client(parent, ip, PORT_NUM);
@@ -59,6 +58,7 @@ class JoinLobby extends Level {
       warning = "Unable to connect.";
       return;
     }
+    // ask for joining the game
     Packet packet = new Packet(PacketType.JOIN, player_name);
     byte[] data = null;
     try {
@@ -75,6 +75,7 @@ class JoinLobby extends Level {
   }
 
   private void serverRead() {
+    // get reply from server
     retry++;
     byte[] data = client.readBytesUntil(interesting);
     if (data != null) {
@@ -82,14 +83,12 @@ class JoinLobby extends Level {
       try {
         Packet packet = ps.deserialize(data);
         if (packet.getType() == PacketType.ACCEPT) {
+          // go to lobby
           loadLevel(new ClientLobby(client));
           return;
         } else if (packet.getType() == PacketType.REJECT) {
           warning = "Connection Rejected";
           connecting = false;
-          //println("disconnecting");
-          //client.stop();
-          //client = null;
           return;
         }
       } 
@@ -105,6 +104,7 @@ class JoinLobby extends Level {
       }
     }
     if (retry > 100) {
+      // failed to connect after 100 retry
       connecting = false;
       warning = "Failed to connect";
     }

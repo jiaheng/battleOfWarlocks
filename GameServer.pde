@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 class GameServer extends Level {
   private final int PACKET_FREQ = 3;
   private final int SCORE_FREQ = 30;
-  
+
   private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
   private CopyOnWriteArrayList<GameObject> remove_from_game = new CopyOnWriteArrayList<GameObject>();
   private ConcurrentHashMap<String, Unit> units = new ConcurrentHashMap<String, Unit>(10);
@@ -61,6 +61,7 @@ class GameServer extends Level {
       return;
     }
     for (Player player : players) {
+      // track player score
       if (player.getName().equals(player_name)) {
         current_player = player;
         break;
@@ -94,7 +95,7 @@ class GameServer extends Level {
   }
 
   private void receiveCommand() {
-    // Get the next available client
+    // receive packet from client
     Client client = server.available();
     if (client !=null && client.available() > 0) {
       byte[] data = client.readBytesUntil(interesting);
@@ -114,8 +115,8 @@ class GameServer extends Level {
         e.printStackTrace();
         return;
       }
-      // a Player trying to join during game
       if (packet.getType() == PacketType.JOIN) {
+        // a Player trying to join during game
         server.disconnect(client);
       } else if (packet.getType() == PacketType.COMMAND) {
         processCommand(packet, client.ip());
@@ -124,6 +125,7 @@ class GameServer extends Level {
   }
 
   private void sendScore() {
+    // send score of each player to clients
     ArrayList list = new ArrayList();
     for (Player player : players) {
       PlayerData player_data = new PlayerData(player);
@@ -136,7 +138,6 @@ class GameServer extends Level {
       server.write(interesting);
       server.write(data);
       server.write(interesting);
-      //println(data.length);
     } 
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
@@ -145,7 +146,9 @@ class GameServer extends Level {
   }
 
   private void sendState() {
+    // send game state to clients
     ArrayList list = new ArrayList();
+    // list contain units and fireball data
     for (GameObject obj : gameObjs) {
       if (obj instanceof Unit) {
         Unit unit = (Unit) obj;
@@ -164,7 +167,6 @@ class GameServer extends Level {
       server.write(interesting);
       server.write(data);
       server.write(interesting);
-      //println(data.length);
     } 
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
@@ -179,6 +181,7 @@ class GameServer extends Level {
     world.draw();
 
     if (pregame) {
+      // show countdown before match start
       fill(0);
       textSize(24);
       text("Game will start in " + (pregame_timer/60+1), width/2, height/2);
@@ -204,7 +207,8 @@ class GameServer extends Level {
       gameObjs.add(obj);
     }
     addToWorld.clear();
-
+    
+    // check if any player dies
     boolean player_died = false;
     for (GameObject obj : removeFromWorld) {
       if (obj instanceof Unit) {
@@ -221,6 +225,7 @@ class GameServer extends Level {
       gameObjs.remove(obj);
     }
     removeFromWorld.clear();
+    // next player who dies will get more points
     if (player_died) score_point += 1;
 
     for (GameObject obj : remove_from_game) {
@@ -228,9 +233,10 @@ class GameServer extends Level {
     }
     remove_from_game.clear();
 
-    // check if player is still alive
+    // check number of players who still alive
     int num_alive = getPlayerAlive();
     if (num_alive <= 1 && !endgame && !endround) {
+      // round end if one player or none left
       // add point to player alive
       for (Player player : players) {
         if (!player.isDead()) {
@@ -244,11 +250,13 @@ class GameServer extends Level {
     hud.draw();
 
     if (endround) {
+      // show countdown when round end
       fill(0);
       textSize(24);
       text("Round end, next round will start in " + (endround_timer/60+1), width/2, height/2);
       endround_timer--;
       if (endround_timer < 0) {
+        // begin a new round
         begin();
       }
     }
@@ -257,13 +265,15 @@ class GameServer extends Level {
       exit_button.draw();
     }
 
+    // send game state to clients
     if (packet_timer > 0) {
       packet_timer--;
     } else {
       sendState();
       packet_timer = PACKET_FREQ;
     }
-
+    
+    // send score of each player to clients
     if (score_timer > 0) {
       score_timer--;
     } else {
@@ -273,6 +283,7 @@ class GameServer extends Level {
   }
 
   private void endRound() {
+    // this function will be called when a round is finish
     if (round < TOTAL_ROUND) {
       endround = true;
       round++;
@@ -282,8 +293,9 @@ class GameServer extends Level {
       exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
     }
   }
-  
+
   private int getPlayerAlive() {
+    // get total number of players alive
     int alive = 0;
     for (Player player : players) {
       if (!player.isDead()) alive++;
@@ -292,9 +304,9 @@ class GameServer extends Level {
   }
 
   private void removePlayer(String ip) {
+    // remove a player during the game
     if (endgame) return;
     Unit unit = units.remove(ip);
-    if (unit == null) return; //exit if the player doesnt exist
     for (Player player : players) {
       if (player.getIp().equals(ip)) {
         players.remove(player);
@@ -310,6 +322,7 @@ class GameServer extends Level {
   }
 
   private void processCommand(Packet packet, String ip) {
+    // process the command received from client
     if (pregame || endgame || endround) return; // all unit freeze before match start
     String name = packet.getName();
     PVector target = new PVector(packet.getX(), packet.getY());
@@ -324,6 +337,7 @@ class GameServer extends Level {
   }
 
   private void processCommand(String ip, PVector target, Action action) {
+    // this function is used when the host command its unit
     if (pregame || endgame || endround) return; // all unit freeze before match start
     Unit unit = units.get(ip);
     if (unit != null) {
@@ -364,8 +378,6 @@ class GameServer extends Level {
       } else if (command != Action.NOTHING) { //if a button is clicked
         selectAction(command);
       }
-      //PVector target = new PVector(mouseX, mouseY);
-      //controlled_unit.cast(target);
     }
   }
 

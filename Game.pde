@@ -1,5 +1,5 @@
 class Game extends Level {
-  
+  // @deprecated
   private int init_minute, init_second;
   private World world;
   private Unit controlled_unit;  

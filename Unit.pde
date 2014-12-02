@@ -1,5 +1,5 @@
 class Unit extends GameObject {
-
+  // this class represent unit(warlock) controlled by a player
   public static final float RADIUS = 15f;
   public static final float INV_MASS = 1f;
 
@@ -50,23 +50,27 @@ class Unit extends GameObject {
   }
 
   public void draw() {
+    // draw the unit
     fill(unit_color);
     ellipse(position.x, position.y, RADIUS*2, RADIUS*2);
-    /*fill(#006600);
+    /* show remaining HP in number
+     fill(#006600);
      textSize(12);
      textAlign(CENTER);
      text(int(current_hp) + "/" + int(MAX_HP), position.x, position.y - RADIUS/0.8);
      */
+     // show player name
     textAlign(CENTER);
     textSize(14);
     text(name, position.x, position.y - RADIUS/0.5);
-
+    // show player health bar
     float percentage = current_hp / MAX_HP;
     fill(255);
     rect(position.x-HP_BAR_LEN/2, position.y-RADIUS-10, HP_BAR_LEN, 7);
     fill(#00CC00);
     rect(position.x-HP_BAR_LEN/2, position.y-RADIUS-10, HP_BAR_LEN*percentage, 7);
     fill(0);
+    // draw a line represent its facing direction
     PVector facing = PVector.fromAngle(orientation);
     facing.mult(RADIUS);
     facing.add(position);
@@ -79,6 +83,8 @@ class Unit extends GameObject {
 
   public void collidedWith(GameObject other) {
     if (other instanceof Fireball) {
+      // if collided with fireball 
+      // reduce health
       current_hp -= Fireball.DAMAGE;
       Fireball fireball = (Fireball)other;
       Unit caster = fireball.caster;
@@ -86,9 +92,11 @@ class Unit extends GameObject {
       force.normalize();
       float add_knockback = 0f;
       if (caster != null) {
+        // caster of the fireball gain more power on next attack
         add_knockback = caster.knockback_force;
         caster.gainKnockback(fireball.FORCE*KNOCKBACK_GAIN_FACTOR);
       }
+      // calculate knockback force
       force.mult(Fireball.FORCE + add_knockback);
       force_acc.add(force);
     }
@@ -104,35 +112,43 @@ class Unit extends GameObject {
   }
 
   private boolean changeOrientation(PVector target_point) {
+    // try to change unit facing direction
     float facing = getOrientation(target_point);
+    // trying to change its facing direction
+    // find the faster way to turn the units to desired direction
     if (abs(orientation - facing) < TURN_RATE) {
       orientation = facing;
     } else if (orientation > facing && (orientation - facing) < PI) {
-      orientation -= TURN_RATE;
-    } else if (orientation > facing && (orientation - facing) > PI) {
       orientation += TURN_RATE;
     } else if (orientation < facing && (facing - orientation) < PI) {
       orientation += TURN_RATE;
     } else if (orientation < facing && (facing - orientation) > PI) {
       orientation -= TURN_RATE;
     }
-
+    
+    // orientation must between pi and -pi
     if (orientation > PI) {
       orientation = orientation - TWO_PI;
     } else if (orientation < -PI) {
       orientation = orientation + TWO_PI;
     }
-
+    
+    // true if the unit is facing the correct direction
+    // false if the unit is not facing the correct direction
     return (abs(orientation - facing) < 0.01)? true : false;
   }
 
   private void castBlink() {
+    // will no cast spell if in cooldown
     if (blink_cooldown > 0) {
       action = Action.NOTHING;
       return;
     }
+    // try to face toward the destination point
+    // will not cast the spell if the unit is not facing the destination point
     if (!changeOrientation(target_point)) return;
 
+    // teleport the unit to target location if within the maximum range
     if (position.dist(target_point) < Blink.MAX_RANGE) {
       position = target_point;
     } else {
@@ -147,12 +163,16 @@ class Unit extends GameObject {
   }
 
   private void castFireball() {
+    // will not cast the spell if in cooldown
     if (fireball_cooldown > 0) {
       action = Action.NOTHING;
       return;
     }
+    // try to face toward the destination point
+    // will not cast the spell if the unit is not facing the destination point
     if (!changeOrientation(target_point)) return;
-
+    
+    // create fireball from the position of the unit
     PVector fireball_position = PVector.fromAngle(orientation);
     fireball_position.mult(RADIUS + Fireball.RADIUS);
     fireball_position.add(position);
@@ -164,19 +184,19 @@ class Unit extends GameObject {
   }
 
   private void move() {
-    /*PVector direction = target_point.get();
-     direction.sub(position);
-     direction.normalize();
-     direction.mult(MAX_SPEED);*/
-
+    // try to face toward the destination point
+    // will not move toward the destination 
+    // if the unit is not facing correct direction
     if (!changeOrientation(target_point)) return;
-
+    
+    // move at constant speed
     PVector move_velocity = PVector.fromAngle(orientation);
     move_velocity.mult(MAX_SPEED);
-    // if not moving or moving lower than max speed IN THE DISIRED DIRECTION
     if (abs(velocity.mag() - 0) < 0.1 || velocity.mag() <= MAX_SPEED && PVector.angleBetween(move_velocity, velocity) < 0.01) {
+      // if not moving or moving lower than max speed IN THE DISIRED DIRECTION
       float dist = position.dist(target_point);
-      if (dist <= MAX_SPEED) {  //reach destination
+      if (dist <= MAX_SPEED) {  
+        // stop when reach the destination
         position = target_point;
         target_point = null;
         action = Action.NOTHING;
@@ -203,7 +223,9 @@ class Unit extends GameObject {
   }
 
   private void hold() {
+    // stop the unit
     if (velocity.mag() < MAX_SPEED && velocity.mag() > 0) {
+      // if the unit is not moving too fast(due to knockback force from fireball)
       velocity = new PVector(0, 0);
     }
   }
@@ -216,6 +238,7 @@ class Unit extends GameObject {
 
   public void update() {
     if (current_hp <= 0) {
+      // if the unit dies
       current_level.removeFromWorld.add(this);
     }
 
@@ -227,13 +250,15 @@ class Unit extends GameObject {
     velocity.add(resultingAcceleration);
     velocity.mult(DAMPING);
     if (velocity.mag() < MAX_SPEED && velocity.mag() > 0) {
+      // go to stop if unit is very slows
       velocity = new PVector(0, 0);
     }
 
     // Clear accumulator
     force_acc.x = 0;
     force_acc.y = 0; 
-
+    
+    // do its action
     switch (action) {
     case MOVE:
       move();
@@ -255,6 +280,7 @@ class Unit extends GameObject {
     if (fireball_cooldown > 0) fireball_cooldown--;
     if (blink_cooldown > 0) blink_cooldown--;
 
+    // check if the units is in the lava
     if (time_in_lava >= 0) {
       int now = millis();
       int duration = now - time_in_lava;
