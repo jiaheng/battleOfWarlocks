@@ -119,6 +119,8 @@ class Unit extends GameObject {
     if (abs(orientation - facing) < TURN_RATE) {
       orientation = facing;
     } else if (orientation > facing && (orientation - facing) < PI) {
+      orientation -= TURN_RATE;
+    } else if (orientation > facing && (orientation - facing) > PI) {
       orientation += TURN_RATE;
     } else if (orientation < facing && (facing - orientation) < PI) {
       orientation += TURN_RATE;

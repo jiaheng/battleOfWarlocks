@@ -72,7 +72,7 @@ class Hud {
     blink_button.update(controlled_unit.blink_cooldown);
     blink_button.draw();
     // show scoreboard
-    Collections.sort(players);
+    //Collections.sort(players);
     if (!gameover) {
       showScore();
     } else {

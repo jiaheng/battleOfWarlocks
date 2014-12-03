@@ -45,6 +45,7 @@ class GameServer extends Level {
     endround_timer = 300;
     pregame = true;
     pregame_timer = 300;
+    score_point = 1;
     init_minute = minute();
     init_second = second();
     units.clear();
@@ -215,7 +216,7 @@ class GameServer extends Level {
         Unit unit = (Unit) obj;
         String name = unit.getName();
         for (Player player : players) {
-          if (player.getName().equals(name)) {
+          if (player.getName().equals(name) && !endgame && !endround) {
             player.killed();
             player.addScore(score_point);
             player_died = true;
