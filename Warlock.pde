@@ -14,6 +14,7 @@ PImage floor_img, fireball_icon, fireball_img, blink_icon;
 String player_name = "player name";
 AudioPlayer sfx_fireball, sfx_typing, sfx_blink;
 Gif title;
+boolean left_mouse_as_move = false;
 
 void play(AudioPlayer sfx) {
   sfx.pause();

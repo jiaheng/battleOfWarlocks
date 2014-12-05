@@ -23,7 +23,8 @@ class Unit extends GameObject {
   private int fireball_cooldown = 0;
   private PVector force_acc = new PVector(0, 0);
   private int time_in_lava = -1;
-
+  private boolean show_name = true;
+  
   Unit(float x, float y, float orientation, String name, color colour, World world) {
     this.orientation = orientation;
     this.name = name;
@@ -35,6 +36,7 @@ class Unit extends GameObject {
   Unit(PlayerData player, World world) {
     this.orientation = player.orientation;
     this.name = player.name;
+    this.show_name = player.show_name;
     this.unit_color = color(player.unit_color);
     this.fireball_cooldown = player.fireball_cooldown;
     this.blink_cooldown = player.blink_cooldown;
@@ -59,10 +61,12 @@ class Unit extends GameObject {
      textAlign(CENTER);
      text(int(current_hp) + "/" + int(MAX_HP), position.x, position.y - RADIUS/0.8);
      */
-     // show player name
-    textAlign(CENTER);
-    textSize(14);
-    text(name, position.x, position.y - RADIUS/0.5);
+    if (show_name) {
+      // show player name
+      textAlign(CENTER);
+      textSize(14);
+      text(name, position.x, position.y - RADIUS/0.5);
+    }
     // show player health bar
     float percentage = current_hp / MAX_HP;
     fill(255);
@@ -127,14 +131,14 @@ class Unit extends GameObject {
     } else if (orientation < facing && (facing - orientation) > PI) {
       orientation -= TURN_RATE;
     }
-    
+
     // orientation must between pi and -pi
     if (orientation > PI) {
       orientation = orientation - TWO_PI;
     } else if (orientation < -PI) {
       orientation = orientation + TWO_PI;
     }
-    
+
     // true if the unit is facing the correct direction
     // false if the unit is not facing the correct direction
     return (abs(orientation - facing) < 0.01)? true : false;
@@ -173,7 +177,7 @@ class Unit extends GameObject {
     // try to face toward the destination point
     // will not cast the spell if the unit is not facing the destination point
     if (!changeOrientation(target_point)) return;
-    
+
     // create fireball from the position of the unit
     PVector fireball_position = PVector.fromAngle(orientation);
     fireball_position.mult(RADIUS + Fireball.RADIUS);
@@ -190,7 +194,7 @@ class Unit extends GameObject {
     // will not move toward the destination 
     // if the unit is not facing correct direction
     if (!changeOrientation(target_point)) return;
-    
+
     // move at constant speed
     PVector move_velocity = PVector.fromAngle(orientation);
     move_velocity.mult(MAX_SPEED);
@@ -259,7 +263,7 @@ class Unit extends GameObject {
     // Clear accumulator
     force_acc.x = 0;
     force_acc.y = 0; 
-    
+
     // do its action
     switch (action) {
     case MOVE:
@@ -349,6 +353,18 @@ class Unit extends GameObject {
 
   public float getVelY() {
     return velocity.y;
+  }
+  
+  public void hideName() {
+    show_name = false;
+  }
+  
+  public void showName() {
+    show_name = true;
+  }
+  
+  public boolean nameVisible() {
+    return show_name;
   }
 }
 

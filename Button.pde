@@ -8,8 +8,8 @@ class Button {
   private int button_x, button_y, button_len, button_width;
   private String label;
   private ButtonAction action; // action associate with the button
-  
-  // Create button with label
+
+    // Create button with label
   Button(ButtonAction action, int button_x, int button_y, int button_len, int button_width, String label) {
     this.action = action;
     this.button_x = button_x;
@@ -27,7 +27,12 @@ class Button {
     textAlign(CENTER);
     text(this.label, button_x + button_len/2, button_y+FONT_SIZE/3 + button_width/2);
   }
-  
+
+  // change the label of the button
+  public void changeLabel(String label) {
+    this.label = label;
+  }
+
   // change color of the button when pressed
   public void highlight() {
     button_color = HIGHLIGHT_COLOR;

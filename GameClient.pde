@@ -245,7 +245,7 @@ class GameClient extends Level {
     }
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
-      if (issue_cmd == Action.NOTHING) { // move command if no cmd issued
+      if (issue_cmd == Action.NOTHING && !left_mouse_as_move) { // move command if no cmd issued
         sendCommand(target, Action.MOVE);
       } else { // if a cmd issued, cancel the cmd
         issue_cmd = Action.NOTHING;
@@ -256,12 +256,14 @@ class GameClient extends Level {
       if (command == Action.NOTHING && issue_cmd != Action.NOTHING) { 
         //if no skill button is clicked and there is a command issue
         sendCommand(target, issue_cmd);
-        // reset
+        // reset cursor
         cursor(ARROW);
         issue_cmd = Action.NOTHING;
       } else if (command != Action.NOTHING) { 
         //if a skill button is clicked
         selectAction(command);
+      } else if (left_mouse_as_move) {
+        sendCommand(target, Action.MOVE);
       }
     }
   }

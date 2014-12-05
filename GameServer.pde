@@ -190,6 +190,9 @@ class GameServer extends Level {
       if (pregame_timer < 0) {
         hud.startTimer();
         pregame = false;
+        for (Unit unit : units.values () ) {
+          unit.hideName();
+        }
       }
     }
 
@@ -208,7 +211,7 @@ class GameServer extends Level {
       gameObjs.add(obj);
     }
     addToWorld.clear();
-    
+
     // check if any player dies
     boolean player_died = false;
     for (GameObject obj : removeFromWorld) {
@@ -273,7 +276,7 @@ class GameServer extends Level {
       sendState();
       packet_timer = PACKET_FREQ;
     }
-    
+
     // send score of each player to clients
     if (score_timer > 0) {
       score_timer--;
@@ -289,10 +292,14 @@ class GameServer extends Level {
       endround = true;
       round++;
     } else {
-      endgame = true;
-      hud.endGame();
-      exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
+      gameOver();
     }
+  }
+
+  private void gameOver() {
+    endgame = true;
+    hud.endGame();
+    exit_button = new Button(ButtonAction.BACK, width/2-100, height/2+250, 200, 50, "Quit");
   }
 
   private int getPlayerAlive() {
@@ -315,6 +322,7 @@ class GameServer extends Level {
     }
     remove_from_game.add(unit); //remove from game objects
     total_player--;
+    if (total_player < 2) gameOver(); // game over if one player left
   }
 
   public void disconnectEvent(Client client) {
@@ -364,7 +372,7 @@ class GameServer extends Level {
     }
     PVector target = new PVector(mouseX, mouseY);
     if (mouseButton == RIGHT) { 
-      if (issue_cmd == Action.NOTHING) { // move command if no cmd issued
+      if (issue_cmd == Action.NOTHING && !left_mouse_as_move) { // move command if no cmd issued
         processCommand(HOST, target, Action.MOVE);
       } else { // if a cmd issued, cancel the cmd
         issue_cmd = Action.NOTHING;
@@ -378,6 +386,8 @@ class GameServer extends Level {
         issue_cmd = Action.NOTHING;
       } else if (command != Action.NOTHING) { //if a button is clicked
         selectAction(command);
+      } else if (left_mouse_as_move) {
+        processCommand(HOST, target, Action.MOVE);
       }
     }
   }
