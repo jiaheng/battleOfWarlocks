@@ -1,3 +1,3 @@
 public enum ButtonAction {
-  START, JOIN, BACK
+  START, JOIN, BACK, QUIT, TOOGLE
 }
