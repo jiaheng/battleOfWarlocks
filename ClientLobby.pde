@@ -118,6 +118,7 @@ class ClientLobby extends Level {
     for (Button button : buttons) {
       button.unhighlight();
     }
+    // find selected button and execute  
     Button selected_button = selectedButton();
     if (selected_button != null) {
       ButtonAction action = selected_button.getAction();

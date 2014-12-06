@@ -107,13 +107,13 @@ class GameServer extends Level {
         packet = ps.deserialize(data);
       } 
       catch (IOException e) {
-        System.err.println("Caught IOException: " + e.getMessage());
-        e.printStackTrace();
+        //System.err.println("Caught IOException: " + e.getMessage());
+        //e.printStackTrace();
         return;
       } 
       catch (ClassNotFoundException e) {
-        System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-        e.printStackTrace();
+        //System.err.println("Caught ClassNotFoundException: " + e.getMessage());
+        //e.printStackTrace();
         return;
       }
       if (packet.getType() == PacketType.JOIN) {
@@ -176,8 +176,9 @@ class GameServer extends Level {
   }
 
   public void draw() {
+    // receive and process packet from client
     receiveCommand();
-
+    
     if (!endgame) world.update();
     world.draw();
 
@@ -206,12 +207,13 @@ class GameServer extends Level {
       checkCollisions(obj);
       obj.draw();
     }
-
+    
+    // add new object to the world (eg. new fireball)
     for (GameObject obj : addToWorld) {
       gameObjs.add(obj);
     }
     addToWorld.clear();
-
+    
     // check if any player dies
     boolean player_died = false;
     for (GameObject obj : removeFromWorld) {
@@ -231,7 +233,7 @@ class GameServer extends Level {
     removeFromWorld.clear();
     // next player who dies will get more points
     if (player_died) score_point += 1;
-
+    
     for (GameObject obj : remove_from_game) {
       gameObjs.remove(obj);
     }
