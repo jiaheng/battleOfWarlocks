@@ -153,4 +153,3 @@ class Hud {
     blink_button.disable();
   }
 }
-

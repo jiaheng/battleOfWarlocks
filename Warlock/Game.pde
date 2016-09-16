@@ -104,4 +104,3 @@ class Game extends Level {
   public void stop() {
   }
 }
-

@@ -48,4 +48,3 @@ class Fireball extends GameObject {
     play(sfx_fireball);
   }
 }
-

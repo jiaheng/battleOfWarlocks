@@ -1,4 +1,4 @@
-class Button {
+public class Button {
 
   private static final int FONT_SIZE = 28;
   private static final color HIGHLIGHT_COLOR = 128;
@@ -49,12 +49,19 @@ class Button {
 
   // check if the position of mouse is on the button
   public boolean overButton() {
-    if (mouseX >= button_x && mouseX <= button_x + button_len && 
+    if (mouseX >= button_x && mouseX <= button_x + button_len &&
       mouseY >= button_y && mouseY <= button_y + button_width) {
       return true;
     } else {
       return false;
     }
   }
-}
 
+  public void setXPostion(int x) {
+    this.button_x = x;
+  }
+
+  public void setYPosition(int y) {
+    this.button_y = y;
+  }
+}

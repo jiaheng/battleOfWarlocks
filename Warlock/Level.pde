@@ -15,4 +15,3 @@ abstract class Level {
   void disconnectEvent(Client client) {
   }
 }
-

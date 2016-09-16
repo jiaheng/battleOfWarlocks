@@ -45,4 +45,3 @@ static class PlayerData implements Serializable {
     this(player.getName(), player.getColor(), player.getScore());
   }
 }
-

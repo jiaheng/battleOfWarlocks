@@ -48,4 +48,3 @@ abstract class GameObject {
     return orientation;
   }
 }
-

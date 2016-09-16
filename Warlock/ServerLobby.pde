@@ -1,28 +1,51 @@
 import processing.net.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.net.*;
 
 class ServerLobby extends Level {
+  private final int SERVER_DISCOVERY_INTERVAL = 60;
+  private int discovery_counter = 0;
+
+  private MulticastSocket discoverySocket;
+  private DatagramSocket serverSocket;
 
   // color used to represent each player
-  private color[] color_list = new color[] {
-    color(#FF0000), 
-    color(#1400FF), 
-    color(#A900FF), 
-    color(#FFF300), 
-    color(#11DB00), 
-    color(#FC36B4), 
-    color(#9B6000), 
+  private final color[] color_list = new color[] {
+    color(#FF0000),
+    color(#1400FF),
+    color(#A900FF),
+    color(#FFF300),
+    color(#11DB00),
+    color(#FC36B4),
+    color(#9B6000),
     color(#1FFFEA)
   };
   private int WIDTH = 500;
   private int LENGTH = 600;
   private ArrayList<Button> buttons = new ArrayList<Button>();
   private CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<Player>();
-  private PacketSerializer ps = new PacketSerializer();  
+  private PacketSerializer ps = new PacketSerializer();
   private Server server;
   private int timer = 0;
   private int total_player = 0;
   private String msg = "";
+
+  public ServerLobby() {
+    try {
+      serverSocket = new DatagramSocket();
+      discoverySocket = new MulticastSocket(SERVER_PORT_NUM);
+      discoverySocket.joinGroup(SERVER_DISCOVERY_GROUP);
+      discoverySocket.setSoTimeout(50);
+    } catch (SocketException e) {
+      e.printStackTrace();
+      discoverySocket.close();
+      exit();
+    } catch (IOException e) {
+      e.printStackTrace();
+      discoverySocket.close();
+      exit();
+    }
+  }
 
   public void begin() {
     Button button;
@@ -34,12 +57,46 @@ class ServerLobby extends Level {
     button = new Button(ButtonAction.BACK, width/2+50, height-100, button_width, button_height, "BACK");
     buttons.add(button);
     createPlayer(player_name, HOST);
+
+    receiveDiscoveryRequest();
+  }
+
+  private void receiveDiscoveryRequest() {
+    byte[] buffer = new byte[DiscoveryPacket.SIZE];
+    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+    Packet packet = null;
+    try {
+      discoverySocket.receive(receivePacket);
+      packet = PacketSerializer.deserialize(receivePacket.getData());
+      println(packet.getType());
+      println(receivePacket.getAddress().getHostAddress() + " " + receivePacket.getPort());
+      SocketAddress clientAddress = receivePacket.getSocketAddress();
+      LobbyInfoPacket serverInfoPacket = new LobbyInfoPacket(player_name + " Server", total_player, MAX_PLAYER);
+      buffer = PacketSerializer.serialize(serverInfoPacket);
+      DatagramPacket outgoingPacket = new DatagramPacket(buffer, buffer.length, clientAddress);
+      if (buffer.length > LobbyInfoPacket.SIZE) {
+        println("Lobby info Packet size too large: " + buffer.length + " bytes.");
+      }
+      discoverySocket.send(outgoingPacket);
+      println("sending back " + buffer.length + " bytes. and id:" + serverInfoPacket.getSenderUUID());
+    } catch (SocketTimeoutException e) {
+      return;
+    } catch (IOException e) {
+      e.printStackTrace();
+      exit();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      exit();
+    }
   }
 
   private void closeConnection() {
     if (server != null) {
-      println("server is closing");
       server.stop();
+    }
+
+    if (discoverySocket != null) {
+      discoverySocket.close();
     }
   }
 
@@ -59,7 +116,7 @@ class ServerLobby extends Level {
   }
 
   private boolean createPlayer(String name, String ip) {
-    if (total_player >= 8) return false; // maximum 8 player
+    if (total_player >= MAX_PLAYER) return false; // maximum 8 player
     color unit_color = getUnusedColor();
     for (Player player : players) {
       if (player.getName().equals(name))
@@ -103,12 +160,12 @@ class ServerLobby extends Level {
         } else {
           server.disconnect(client);
         }
-      } 
+      }
       catch (IOException e) {
         System.err.println("Caught IOException: " + e.getMessage());
         e.printStackTrace();
         return;
-      } 
+      }
       catch (ClassNotFoundException e) {
         System.err.println("Caught ClassNotFoundException: " + e.getMessage());
         e.printStackTrace();
@@ -125,7 +182,7 @@ class ServerLobby extends Level {
       data = ps.serialize(packet);
       server.write(data);
       server.write(interesting);
-    } 
+    }
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
@@ -148,7 +205,7 @@ class ServerLobby extends Level {
       server.write(data);
       server.write(interesting);
       //println(data.length);
-    } 
+    }
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
@@ -198,6 +255,14 @@ class ServerLobby extends Level {
     } else {
       sendList();
       timer = 5;
+    }
+
+    // check discovery request
+    if (discovery_counter == SERVER_DISCOVERY_INTERVAL) {
+      discovery_counter = 0;
+      receiveDiscoveryRequest();
+    } else {
+      discovery_counter++;
     }
   }
 
@@ -259,4 +324,3 @@ class ServerLobby extends Level {
     closeConnection();
   }
 }
-

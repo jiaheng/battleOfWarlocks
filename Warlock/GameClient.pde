@@ -329,4 +329,3 @@ class GameClient extends Level {
   public void keyPressed() {
   }
 }
-

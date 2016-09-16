@@ -1,11 +1,17 @@
-import gifAnimation.*;
-import processing.net.*;
 import ddf.minim.*;
 
+static final int MAX_PLAYER = 8;
 static final int TOTAL_ROUND = 3;
-static Level current_level;
 static final int PORT_NUM = 50000;
+static final int SERVER_PORT_NUM = 50001;
+static final int CLIENT_PORT_NUM = 50002;
+static final String LOBBY_LISTEN_ADDRESS = "224.0.0.134";
 static final String HOST = "host";
+static final UUID APP_UUID = UUID.randomUUID();
+
+private final InetAddress SERVER_DISCOVERY_GROUP;
+
+static Level current_level;
 
 byte interesting = (byte) 127;
 final PApplet parent = this;
@@ -13,8 +19,18 @@ PGraphics bg;
 PImage floor_img, fireball_icon, fireball_img, blink_icon;
 String player_name = "player name";
 AudioPlayer sfx_fireball, sfx_typing, sfx_blink;
-Gif title;
 boolean left_mouse_as_move = false;
+
+public Warlock() {
+  InetAddress group = null;
+  try {
+     group = InetAddress.getByName(LOBBY_LISTEN_ADDRESS);
+  } catch (UnknownHostException e) {
+    e.printStackTrace();
+    exit();
+  }
+  SERVER_DISCOVERY_GROUP = group;
+}
 
 void play(AudioPlayer sfx) {
   sfx.pause();
@@ -24,16 +40,14 @@ void play(AudioPlayer sfx) {
 
 void setup() {
   size(800, 800);
-  
+
   // load sound files
   Minim minim = new Minim(this);
   sfx_fireball = minim.loadFile("fireball.mp3");
   sfx_typing = minim.loadFile("typing.wav");
   sfx_blink = minim.loadFile("blink.mp3");
-  
+
   // load images
-  title = new Gif(this, "title.gif");
-  title.play();
   blink_icon = loadImage("blink_icon.png");
   fireball_icon = loadImage("fireball_icon.png");
   fireball_img = loadImage("fireball.png");
@@ -48,7 +62,7 @@ void setup() {
     }
   }
   bg.endDraw();
-  
+
   // start with main menu
   loadLevel(new Menu());
 }
@@ -89,4 +103,3 @@ void loadLevel(Level level) {
   current_level = level;
   level.begin();
 }
-

@@ -367,4 +367,3 @@ class Unit extends GameObject {
     return show_name;
   }
 }
-

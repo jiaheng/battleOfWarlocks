@@ -16,7 +16,7 @@ class GameServer extends Level {
   private Server server;
   private int init_minute, init_second;
   private World world;
-  private Unit controlled_unit;  
+  private Unit controlled_unit;
   private Hud hud;
   private Action issue_cmd = Action.NOTHING;
 
@@ -105,12 +105,12 @@ class GameServer extends Level {
       Packet packet = null;
       try {
         packet = ps.deserialize(data);
-      } 
+      }
       catch (IOException e) {
         //System.err.println("Caught IOException: " + e.getMessage());
         //e.printStackTrace();
         return;
-      } 
+      }
       catch (ClassNotFoundException e) {
         //System.err.println("Caught ClassNotFoundException: " + e.getMessage());
         //e.printStackTrace();
@@ -139,7 +139,7 @@ class GameServer extends Level {
       server.write(interesting);
       server.write(data);
       server.write(interesting);
-    } 
+    }
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
@@ -168,7 +168,7 @@ class GameServer extends Level {
       server.write(interesting);
       server.write(data);
       server.write(interesting);
-    } 
+    }
     catch (IOException e) {
       System.err.println("Caught IOException: " + e.getMessage());
       e.printStackTrace();
@@ -178,7 +178,7 @@ class GameServer extends Level {
   public void draw() {
     // receive and process packet from client
     receiveCommand();
-    
+
     if (!endgame) world.update();
     world.draw();
 
@@ -207,13 +207,13 @@ class GameServer extends Level {
       checkCollisions(obj);
       obj.draw();
     }
-    
+
     // add new object to the world (eg. new fireball)
     for (GameObject obj : addToWorld) {
       gameObjs.add(obj);
     }
     addToWorld.clear();
-    
+
     // check if any player dies
     boolean player_died = false;
     for (GameObject obj : removeFromWorld) {
@@ -233,7 +233,7 @@ class GameServer extends Level {
     removeFromWorld.clear();
     // next player who dies will get more points
     if (player_died) score_point += 1;
-    
+
     for (GameObject obj : remove_from_game) {
       gameObjs.remove(obj);
     }
@@ -373,7 +373,7 @@ class GameServer extends Level {
       }
     }
     PVector target = new PVector(mouseX, mouseY);
-    if (mouseButton == RIGHT) { 
+    if (mouseButton == RIGHT) {
       if (issue_cmd == Action.NOTHING && !left_mouse_as_move) { // move command if no cmd issued
         processCommand(HOST, target, Action.MOVE);
       } else { // if a cmd issued, cancel the cmd
@@ -448,4 +448,3 @@ class GameServer extends Level {
   public void keyPressed() {
   }
 }
-

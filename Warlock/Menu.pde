@@ -1,11 +1,17 @@
-class Menu extends Level {
+import gifAnimation.*;
 
-  private ArrayList<Button> buttons = new ArrayList<Button>();
+class Menu extends Level {
   private final int BUTTON_LEN = 600;
   private final int BUTTON_WIDTH = 100;
   private final int MAX_NAME_LEN = 16;
+  
+  private Gif title;
+  private ArrayList<Button> buttons = new ArrayList<Button>();
 
   public void begin() {
+    title = new Gif(parent, "title.gif");
+    title.play();
+    
     int button_y = 250;
     int spacing = 30;
     Button button = new Button(ButtonAction.START, width/2-BUTTON_LEN/2, button_y, BUTTON_LEN, BUTTON_WIDTH, "Start Game");
@@ -113,4 +119,3 @@ class Menu extends Level {
   public void keyReleased() {
   }
 }
-

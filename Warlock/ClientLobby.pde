@@ -35,30 +35,24 @@ class ClientLobby extends Level {
     Packet packet = null;
     try {
       packet = ps.deserialize(data);
-      if (packet.getType() == PacketType.LIST) {
-        // if the packet contain a list of player in the lobby
-        ArrayList list = packet.getData();
-        players.clear();
-        for (Object obj : list) {
-          if (obj instanceof PlayerData) {
-            PlayerData player_data = (PlayerData) obj;
-            Player player = new Player(player_data);
-            players.add(player);
-          }
-        }
-      } else if (packet.getType() == PacketType.START) {
-        // start the game
-        loadLevel(new GameClient(client));
-      }
-    } 
-    catch (IOException e) {
-      System.err.println("Caught IOException: " + e.getMessage());
+    } catch (Exception e) {
       e.printStackTrace();
-      return;
-    } 
-    catch (ClassNotFoundException e) {
-      System.err.println("Caught ClassNotFoundException: " + e.getMessage());
-      return;
+      exit();
+    }
+    if (packet.getType() == PacketType.LIST) {
+      // if the packet contain a list of player in the lobby
+      ArrayList list = packet.getData();
+      players.clear();
+      for (Object obj : list) {
+        if (obj instanceof PlayerData) {
+          PlayerData player_data = (PlayerData) obj;
+          Player player = new Player(player_data);
+          players.add(player);
+        }
+      }
+    } else if (packet.getType() == PacketType.START) {
+      // start the game
+      loadLevel(new GameClient(client));
     }
   }
 
@@ -143,4 +137,3 @@ class ClientLobby extends Level {
     closeConnection();
   }
 }
-

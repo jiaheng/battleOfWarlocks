@@ -1,9 +1,11 @@
 import java.io.Serializable;
 
-static class Packet implements Serializable {
+public static class Packet implements Serializable {
   private static final long serialVersionUID = 6128016096756071380L;
 
   private final PacketType type;
+  private final UUID senderUUID = APP_UUID;
+
   private ArrayList data;
   private float ring_radius;
   private long duration;
@@ -15,6 +17,10 @@ static class Packet implements Serializable {
   private boolean endgame;
   private boolean endround;
   private int endround_timer;
+
+  Packet(PacketType type) {
+    this.type = type;
+  }
 
   Packet(PacketType type, float ring_radius, boolean pregame, boolean endgame, int pregame_timer, boolean endround, int endround_timer, long duration, ArrayList data) {
     this.type = type;
@@ -38,16 +44,16 @@ static class Packet implements Serializable {
     this.data = data;
   }
 
-  Packet(PacketType type) {
-    this.type = type;
-  }
-
   Packet(PacketType type, String player_name, float x, float y, Action action) {
     this.type = type;
     this.player_name = player_name;
     this.x = x;
     this.y = y;
     this.action = action;
+  }
+
+  public UUID getSenderUUID() {
+    return senderUUID;
   }
 
   public PacketType getType() {
@@ -94,7 +100,7 @@ static class Packet implements Serializable {
     return endgame;
   }
 
-  public boolean isRoundOver() { 
+  public boolean isRoundOver() {
     return endround;
   }
 
@@ -102,4 +108,3 @@ static class Packet implements Serializable {
     return endround_timer;
   }
 }
-

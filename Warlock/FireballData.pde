@@ -16,4 +16,3 @@ static class FireballData implements Serializable {
     this(fireball.getX(), fireball.getY(), fireball.getOrientation());
   }
 }
-
